@@ -3,7 +3,7 @@
 ## Project Structure
 
 ```
-talentverify-ai/
+Frontend/
 ├── index.html                  # Standalone HTML prototype (non-React)
 ├── style.css                   # Global design tokens & utility styles
 ├── app.js                      # Vanilla JS for the HTML prototype
