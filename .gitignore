@@ -1,0 +1,13 @@
+node_modules/
+node_modules_backup/
+.vite/
+
+.env
+.env.*
+!.env.example
+
+__pycache__/
+*.pyc
+venv/
+.venv/frontend/dist/
+backend/uploads/
