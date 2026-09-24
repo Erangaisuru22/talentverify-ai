@@ -1,6 +1,0 @@
-$kind: http-request
-url: "{{baseUrl}}/api/crud/jobs/{{jobId}}"
-method: DELETE
-headers:
-  Authorization: Bearer {{token}}
-order: 5000

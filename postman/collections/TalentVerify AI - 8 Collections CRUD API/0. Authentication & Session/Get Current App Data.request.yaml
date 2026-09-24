@@ -1,8 +1,0 @@
-$kind: http-request
-url: "{{baseUrl}}/api/app-data?token={{token}}"
-method: GET
-headers:
-  Authorization: Bearer {{token}}
-queryParams:
-  token: "{{token}}"
-order: 4000
