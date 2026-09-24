@@ -1,9 +1,0 @@
-$kind: http-request
-name: "6. deleteAll users (Safety: confirm=true)"
-url: "{{baseUrl}}/api/crud/users?confirm=true&role=test"
-method: DELETE
-headers:
-  Authorization: Bearer {{token}}
-queryParams:
-  confirm: "true"
-order: 6000

@@ -1,9 +1,0 @@
-$kind: http-request
-name: "6. deleteAll applications (Safety: confirm=true)"
-url: "{{baseUrl}}/api/crud/applications?confirm=true&status=Rejected"
-method: DELETE
-headers:
-  Authorization: Bearer {{token}}
-queryParams:
-  confirm: "true"
-order: 6000

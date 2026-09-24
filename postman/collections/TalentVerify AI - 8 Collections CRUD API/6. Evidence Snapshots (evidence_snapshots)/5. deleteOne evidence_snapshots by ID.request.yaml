@@ -1,6 +1,0 @@
-$kind: http-request
-url: "{{baseUrl}}/api/crud/evidence_snapshots/{{snapshotId}}"
-method: DELETE
-headers:
-  Authorization: Bearer {{token}}
-order: 5000
