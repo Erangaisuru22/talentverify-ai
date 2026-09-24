@@ -924,32 +924,24 @@ def delete_job(job_id: str, token: str):
     if user["role"] != "recruiter":
         raise HTTPException(status_code=403, detail="Only recruiters can delete jobs.")
     is_admin = (user.get("email") == "recruiter@gmail.com" or user.get("id") == "REC-001" or user.get("role") == "admin")
-    job = db.jobs.find_one({"id": job_id}) if is_admin else db.jobs.find_one({"id": job_id, "recruiterId": user["id"]})
+    if not is_admin:
+        raise HTTPException(
+            status_code=403,
+            detail="Only platform administrators have permission to delete job postings."
+        )
+    job = db.jobs.find_one({"id": job_id})
     if not job:
         raise HTTPException(status_code=404, detail="Job not found.")
 
-    if not is_admin:
-        if job.get("status") in ["open", "published"]:
-            raise HTTPException(
-                status_code=400,
-                detail="Published jobs cannot be deleted to preserve applicant records. Please close or archive the job instead."
-            )
-        app_count = db.applications.count_documents({"jobId": job_id})
-        if app_count > 0:
-            raise HTTPException(
-                status_code=400,
-                detail=f"Cannot delete job: {app_count} candidate(s) have already applied."
-            )
-    else:
-        # Admin has full management rights: cascade cleanup linked applications and analysis runs
-        db.applications.delete_many({"jobId": job_id})
-        db.analysis_runs.delete_many({"jobId": job_id})
+    # Admin has full management rights: cascade cleanup linked applications and analysis runs
+    db.applications.delete_many({"jobId": job_id})
+    db.analysis_runs.delete_many({"jobId": job_id})
 
     result = db.jobs.delete_one({"id": job_id})
     if not result.deleted_count:
         raise HTTPException(status_code=404, detail="Job not found.")
-    audit(db, "job_deleted", user["id"], "job", job_id, {"title": job.get("title"), "admin_override": is_admin})
-    return {"ok": True, "message": "Job deleted successfully."}
+    audit(db, "job_deleted", user["id"], "job", job_id, {"title": job.get("title"), "admin_override": True})
+    return {"ok": True, "message": "Job deleted successfully by administrator."}
 
 
 @app.post("/api/jobs/{job_id}/candidate-evaluation")

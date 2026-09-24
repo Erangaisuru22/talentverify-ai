@@ -80,6 +80,7 @@ export default function RecruiterDashboard({
   onAddJob,                 // Callback function to create a new job
   onUpdateJob,              // Callback function to edit an existing job
   onDeleteJob,              // Callback function to delete a job
+  onDeleteApplication,      // Callback function to delete a candidate application
   onUpdateApplicationStatus,// Callback function to update application status (e.g. hired, rejected)
 }) {
   // --------------------------------------------------------------------------
@@ -158,9 +159,13 @@ export default function RecruiterDashboard({
       return;
     }
     try {
-      await apiRequest(`/api/applications/${application.id}?token=${encodeURIComponent(token)}`, {
-        method: 'DELETE',
-      });
+      if (onDeleteApplication) {
+        await onDeleteApplication(application.id);
+      } else {
+        await apiRequest(`/api/applications/${application.id}?token=${encodeURIComponent(token)}`, {
+          method: 'DELETE',
+        });
+      }
       setAllApplications((prev) => prev.filter((app) => app.id !== application.id));
       setActionMessage(`Application for ${candidateName} was deleted successfully.`);
       if (expandedId === application.id) setExpandedId(null);
@@ -391,7 +396,7 @@ export default function RecruiterDashboard({
       {/* -------------------------------------------------------------------- */}
       <section>
         <h3 className="mb-3 text-lg font-bold">
-          Your Job Offers <span className="text-sm font-normal text-slate-400">({jobs.length})</span>
+          {isAdmin ? 'All Platform Job Posts' : 'Your Job Offers'} <span className="text-sm font-normal text-slate-400">({jobs.length})</span>
         </h3>
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
           {jobs.map((job) => (
