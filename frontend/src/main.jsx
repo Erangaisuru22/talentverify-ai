@@ -25,6 +25,10 @@ class ErrorBoundary extends React.Component {
     return { error }
   }
 
+  componentDidCatch(error, errorInfo) {
+    console.error('Captured ErrorBoundary failure:', error, errorInfo);
+  }
+
   render() {
     // If no error occurred, render children normally
     if (!this.state.error) return this.props.children
@@ -34,9 +38,35 @@ class ErrorBoundary extends React.Component {
       <main className="flex min-h-screen items-center justify-center bg-slate-950 p-6">
         <section className="w-full max-w-lg rounded-2xl bg-white p-8 text-center shadow-2xl">
           <h1 className="text-2xl font-bold text-slate-900">TalentVerifyAI could not start</h1>
-          <p className="mt-3 text-sm leading-6 text-slate-600">Clear this site's browser data, reload the page, and restart the app with <code className="rounded bg-slate-100 px-1.5 py-1">npm.cmd run dev</code> if needed.</p>
-          <button type="button" onClick={() => window.location.reload()} className="mt-6 rounded-xl bg-blue-600 px-5 py-3 font-semibold text-white hover:bg-blue-700">Reload page</button>
-          <details className="mt-6 text-left text-xs text-slate-500"><summary className="cursor-pointer font-semibold">Technical details</summary><pre className="mt-2 overflow-auto whitespace-pre-wrap rounded-lg bg-slate-100 p-3">{String(this.state.error?.message || this.state.error)}</pre></details>
+          <p className="mt-3 text-sm leading-6 text-slate-600">
+            Click reload or reset your browser session to resume.
+          </p>
+          <div className="mt-6 flex flex-wrap justify-center gap-3">
+            <button
+              type="button"
+              onClick={() => window.location.reload()}
+              className="rounded-xl bg-blue-600 px-5 py-3 font-semibold text-white hover:bg-blue-700"
+            >
+              Reload page
+            </button>
+            <button
+              type="button"
+              onClick={() => {
+                localStorage.clear();
+                sessionStorage.clear();
+                window.location.href = '/';
+              }}
+              className="rounded-xl border border-slate-300 px-5 py-3 font-semibold text-slate-700 hover:bg-slate-50"
+            >
+              Clear Session & Reset
+            </button>
+          </div>
+          <details open className="mt-6 text-left text-xs text-slate-500">
+            <summary className="cursor-pointer font-semibold">Technical details</summary>
+            <pre className="mt-2 max-h-60 overflow-auto whitespace-pre-wrap rounded-lg bg-slate-100 p-3 font-mono text-[11px] text-red-700">
+              {String(this.state.error?.stack || this.state.error?.message || this.state.error)}
+            </pre>
+          </details>
         </section>
       </main>
     )

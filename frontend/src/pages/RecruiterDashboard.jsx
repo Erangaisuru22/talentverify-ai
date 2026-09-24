@@ -179,10 +179,11 @@ export default function RecruiterDashboard({
   // --------------------------------------------------------------------------
 
   // Filter applications based on selected job from the dropdown
+  const safeAllApplications = Array.isArray(allApplications) ? allApplications.filter(Boolean) : [];
   const filteredApplications =
     selectedJobFilter === 'all'
-      ? allApplications
-      : allApplications.filter((application) => String(application.jobId) === selectedJobFilter);
+      ? safeAllApplications
+      : safeAllApplications.filter((application) => String(application.jobId) === selectedJobFilter);
 
   // Enrich applications with AI suggestion reviews
   const applications = filteredApplications.map((application) => ({
@@ -1776,13 +1777,21 @@ function Detail({ label, value }) {
 // Reusable badge tag list with color tones (green for matched, red for missing, amber for partial)
 function TagList({ items, tone }) {
   const styles = { green: 'bg-green-50 text-green-700', red: 'bg-red-50 text-red-700', amber: 'bg-amber-50 text-amber-700' };
+  const list = Array.isArray(items)
+    ? items
+    : typeof items === 'string'
+      ? items.split(',').map((s) => s.trim()).filter(Boolean)
+      : [];
   return (
     <div className="mb-3 flex flex-wrap gap-2">
-      {items.map((item) => (
-        <span key={item} className={`rounded-full px-2.5 py-1 text-xs font-semibold ${styles[tone]}`}>
-          {item}
-        </span>
-      ))}
+      {list.filter(Boolean).map((item, idx) => {
+        const text = typeof item === 'object' ? item.skill || item.name || JSON.stringify(item) : String(item);
+        return (
+          <span key={idx} className={`rounded-full px-2.5 py-1 text-xs font-semibold ${styles[tone] || styles.green}`}>
+            {text}
+          </span>
+        );
+      })}
     </div>
   );
 }
@@ -1822,13 +1831,16 @@ function GuidanceItem({ label, value }) {
 // evidence gaps, and interview suggestions emphasizing human-in-the-loop hiring.
 // ============================================================================
 function recruiterReviewText(application) {
+  if (!application) return '';
   const guidance = application.analysis?.recruiter_guidance;
   if (guidance) {
-    return `AI-assisted match assessment: ${guidance.reason} Verified strengths: ${guidance.strengths}. Evidence gaps: ${guidance.risks}. Suggested validation: ${guidance.interview_focus}. A human makes the final hiring decision.`;
+    return `AI-assisted match assessment: ${guidance.reason || ''} Verified strengths: ${guidance.strengths || ''}. Evidence gaps: ${guidance.risks || ''}. Suggested validation: ${guidance.interview_focus || ''}. A human makes the final hiring decision.`;
   }
   const score = Number(application.score || 0);
   const recommendation = score >= 85 ? 'Strong Match' : score >= 70 ? 'Good Match' : score >= 55 ? 'Moderate Match' : 'Weak Match';
-  const matched = application.analysis?.matched_skills?.join(', ') || 'no verified required skills';
-  const missing = application.analysis?.missing_skills?.join(', ') || 'no major skill gaps';
+  const matchedSkills = application.analysis?.matched_skills;
+  const matched = Array.isArray(matchedSkills) ? matchedSkills.join(', ') : typeof matchedSkills === 'string' ? matchedSkills : 'no verified required skills';
+  const missingSkills = application.analysis?.missing_skills;
+  const missing = Array.isArray(missingSkills) ? missingSkills.join(', ') : typeof missingSkills === 'string' ? missingSkills : 'no major skill gaps';
   return `AI-assisted match assessment: ${recommendation}. The candidate has a ${score}% evidence-based fit for this job. Verified strengths: ${matched}. Evidence gaps: ${missing}. Validate these areas in a structured interview or practical assessment; a human makes the final hiring decision.`;
 }
