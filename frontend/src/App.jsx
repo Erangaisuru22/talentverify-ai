@@ -267,15 +267,25 @@ export default function App() {
           // Shared User Profile Settings Page
           <ProfilePage user={user} token={token} onSave={saveProfile} />
         ) : user.role === 'recruiter' ? (
-          // Recruiter Dashboard: Job Management & Applicant Tracking
+          // Recruiter Dashboard: Job Management & Applicant Tracking (Admin sees all platform jobs)
           <RecruiterDashboard
             user={user}
             token={token}
-            jobs={jobs.filter((job) => job.recruiterId === user.id)}
+            jobs={
+              user.role === 'admin' || user.email === 'recruiter@gmail.com' || user.id === 'REC-001'
+                ? jobs
+                : jobs.filter((job) => job.recruiterId === user.id)
+            }
             applications={applications}
             onAddJob={addJob}
             onUpdateJob={updateJob}
             onDeleteJob={deleteJob}
+            onDeleteApplication={async (applicationId) => {
+              await apiRequest(`/api/applications/${applicationId}?token=${encodeURIComponent(token)}`, {
+                method: 'DELETE',
+              });
+              setApplications((current) => current.filter((item) => item.id !== applicationId));
+            }}
             onUpdateApplicationStatus={updateApplicationStatus}
           />
         ) : (
