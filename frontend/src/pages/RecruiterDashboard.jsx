@@ -590,63 +590,67 @@ export default function RecruiterDashboard({
                         </DetailPanel>
                       </div>
 
-                      {/* Step B: Evaluation Versioning & On-Demand Re-evaluation Bar */}
-                      <div className="rounded-xl border border-indigo-100 bg-white p-4 shadow-sm flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-                        <div className="flex items-center gap-3">
-                          <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-indigo-50 border border-indigo-200 text-indigo-700">
-                            <Sparkles size={20} />
-                          </div>
-                          <div>
-                            <div className="flex items-center gap-2">
-                              <h4 className="font-bold text-sm text-slate-900">
-                                Evaluation Version {application.evaluation_version || 1}
-                              </h4>
-                              {application.previous_evaluation_id && (
-                                <span className="text-[11px] text-slate-500">
-                                  (Re-evaluated from prior snapshot)
-                                </span>
-                              )}
+                      {/* Step B: Evaluation Versioning & On-Demand Re-evaluation Bar - Exclusive to Company Recruiters */}
+                      {!isDemoRecruiter && (
+                        <>
+                          <div className="rounded-xl border border-indigo-100 bg-white p-4 shadow-sm flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                            <div className="flex items-center gap-3">
+                              <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-indigo-50 border border-indigo-200 text-indigo-700">
+                                <Sparkles size={20} />
+                              </div>
+                              <div>
+                                <div className="flex items-center gap-2">
+                                  <h4 className="font-bold text-sm text-slate-900">
+                                    Evaluation Version {application.evaluation_version || 1}
+                                  </h4>
+                                  {application.previous_evaluation_id && (
+                                    <span className="text-[11px] text-slate-500">
+                                      (Re-evaluated from prior snapshot)
+                                    </span>
+                                  )}
+                                </div>
+                                <p className="text-xs text-slate-500 mt-0.5">
+                                  Snapshot: <span className="font-mono text-indigo-700">{application.github_snapshot_id || 'Initial'}</span>
+                                </p>
+                              </div>
                             </div>
-                            <p className="text-xs text-slate-500 mt-0.5">
-                              Snapshot: <span className="font-mono text-indigo-700">{application.github_snapshot_id || 'Initial'}</span>
+
+                            <div className="flex flex-wrap items-center gap-2">
+                              <button
+                                type="button"
+                                onClick={() => openEvaluationHistory(application.id)}
+                                className="flex items-center gap-1.5 rounded-lg border border-slate-200 px-3 py-1.5 text-xs font-semibold text-slate-700 hover:bg-slate-50"
+                              >
+                                <History size={14} /> Evaluation History
+                              </button>
+                              <button
+                                type="button"
+                                disabled={reEvaluating}
+                                onClick={() => handleReevaluate(application.id)}
+                                className="flex items-center gap-1.5 rounded-lg bg-indigo-600 px-3 py-1.5 text-xs font-semibold text-white hover:bg-indigo-700 disabled:opacity-50"
+                              >
+                                {reEvaluating ? (
+                                  <>
+                                    <Loader2 size={14} className="animate-spin" /> Re-evaluating...
+                                  </>
+                                ) : (
+                                  <>
+                                    <RefreshCw size={14} /> Re-evaluate with Latest Evidence
+                                  </>
+                                )}
+                              </button>
+                            </div>
+                          </div>
+
+                          {/* Gemini Guidance */}
+                          <div className="rounded-xl border border-blue-100 bg-blue-50 p-4">
+                            <p className="text-xs font-bold uppercase text-blue-700">AI-Assisted Match Assessment</p>
+                            <p className="mt-2 text-sm leading-6 text-blue-950">
+                              {analysis.ai_suggestion || 'No AI guidance was saved for this application.'}
                             </p>
                           </div>
-                        </div>
-
-                        <div className="flex flex-wrap items-center gap-2">
-                          <button
-                            type="button"
-                            onClick={() => openEvaluationHistory(application.id)}
-                            className="flex items-center gap-1.5 rounded-lg border border-slate-200 px-3 py-1.5 text-xs font-semibold text-slate-700 hover:bg-slate-50"
-                          >
-                            <History size={14} /> Evaluation History
-                          </button>
-                          <button
-                            type="button"
-                            disabled={reEvaluating}
-                            onClick={() => handleReevaluate(application.id)}
-                            className="flex items-center gap-1.5 rounded-lg bg-indigo-600 px-3 py-1.5 text-xs font-semibold text-white hover:bg-indigo-700 disabled:opacity-50"
-                          >
-                            {reEvaluating ? (
-                              <>
-                                <Loader2 size={14} className="animate-spin" /> Re-evaluating...
-                              </>
-                            ) : (
-                              <>
-                                <RefreshCw size={14} /> Re-evaluate with Latest Evidence
-                              </>
-                            )}
-                          </button>
-                        </div>
-                      </div>
-
-                      {/* Gemini Guidance */}
-                      <div className="rounded-xl border border-blue-100 bg-blue-50 p-4">
-                        <p className="text-xs font-bold uppercase text-blue-700">AI-Assisted Match Assessment</p>
-                        <p className="mt-2 text-sm leading-6 text-blue-950">
-                          {analysis.ai_suggestion || 'No AI guidance was saved for this application.'}
-                        </p>
-                      </div>
+                        </>
+                      )}
 
                       {/* Deep GitHub Evidence Section */}
                       {githubEvidence && (
