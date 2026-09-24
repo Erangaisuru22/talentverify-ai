@@ -1,8 +1,0 @@
-{
-  "name": "talentverify-workspace",
-  "private": true,
-  "scripts": {
-    "dev": "node scripts/dev.mjs",
-    "start": "node scripts/dev.mjs"
-  }
-}

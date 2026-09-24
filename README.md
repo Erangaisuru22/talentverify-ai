@@ -1,117 +1,66 @@
-# TalentVerify AI
-### Intelligent Multi-Source Candidate Screening & Verification Platform
+# TalentVerify AI — Database & Schema Architecture Module
+**Lead Developers:** Hiruni & Pujani
 
-TalentVerify AI is an advanced AI-powered web platform designed to streamline and automate technical candidate screening. It bridges candidates and recruiters by combining intelligent CV parsing, GitHub code evidence verification, portfolio validation, and transparent multi-dimensional job matching.
-
----
-
-## Key Highlights & Capabilities
-
-- **AI-Powered CV Parsing:** Uses Google Gemini API to extract technical skills, soft skills, projects, and work history directly from PDF, DOCX, and TXT files.
-- **GitHub Code Evidence Verification:** Connects to GitHub API to scan candidate repositories, analyze language distributions, code quality indicators, and verify declared skills against real code commits.
-- **Normalized 8-Collection MongoDB Architecture:** Fully normalized database schema (`users`, `candidate_profiles`, `jobs`, `applications`, `candidate_evaluations`, `cv_documents`, `evidence_snapshots`, `evaluation_audit_logs`) guaranteeing referential integrity and complete auditability.
-- **Dual Role Portals:**
-  - **Candidate Portal:** Real-time job discovery, instant AI compatibility analysis, strengths & skill gap insights, and application tracking.
-  - **Recruiter Portal:** Job posting management, applicant ranking, evaluation versioning (`Re-evaluate with Latest Evidence`), and documented recruiter score overrides.
-- **Postman CRUD API:** Full RESTful collection covering `findAll`, `findOne`, `save`, `updateOne`, `deleteOne`, and `deleteAll` across all 8 database collections.
+This module contains the complete normalized MongoDB database architecture, schema integrity validator, seeder scripts, data models, and the 8-Collection Postman CRUD API suite for the TalentVerify AI platform.
 
 ---
 
-## Technology Stack
+## 8-Collection Normalized Schema Design
 
-- **Frontend:** React 18, Vite, TailwindCSS, Vanilla CSS, Lucide Icons
-- **Backend:** Python 3.10+, FastAPI, Uvicorn, Pydantic v2
-- **AI & Evaluation:** Google Gemini AI (2.5 / Flash), Multi-dimensional Scoring Engine
-- **Database:** MongoDB / PyMongo (Normalized 8 collections)
-- **API Testing:** Postman Collection v2.1 with local environment
+The database is structured into 8 distinct collections aligned with Third Normal Form (3NF) principles, eliminating data redundancy while maintaining referential integrity across candidates, recruiters, jobs, applications, and AI evaluations.
 
----
-
-## Getting Started
-
-### 1. Prerequisites
-- Python 3.10 or higher
-- Node.js (v18 or higher) & npm
-- MongoDB Community Server running locally on port `27017`
-
-### 2. Quick Start
-
-Start MongoDB, open your terminal in the project root, and run:
-
-```cmd
-start_app.bat
+```
+       [users]
+       ├── candidate_profiles (1-to-1)
+       │    ├── cv_documents (1-to-many)
+       │    └── evidence_snapshots (1-to-many: GitHub, LinkedIn, Portfolio)
+       │
+       └── jobs (1-to-many, created by Recruiters)
+            └── applications (Many-to-Many bridge: candidate + job)
+                 ├── candidate_evaluations (1-to-many versioned evaluations)
+                 └── evaluation_audit_logs (1-to-many score overrides & audit trails)
 ```
 
-Or run via npm:
+### Detailed Collections Breakdown:
 
+| # | Collection Name | Primary Key | Description & Foreign Key References |
+|---|---|---|---|
+| 1 | `users` | `id` (`CAND-xxx` / `REC-xxx`) | Authentication credentials, roles (`candidate`/`recruiter`), sessions. |
+| 2 | `candidate_profiles` | `id` | Candidate bio, headline, experience, skills, social links (`userId` -> `users.id`). |
+| 3 | `jobs` | `id` (`JOB-xxx`) | Vacancies, scoring weights, required skills (`recruiterId` -> `users.id`). |
+| 4 | `applications` | `id` (`APP-xxx`) | Job applications (`userId` -> `users.id`, `jobId` -> `jobs.id`). |
+| 5 | `candidate_evaluations` | `id` (`EVAL-xxx`) | Versioned AI evaluations (`application_id`, `candidate_id`, `job_id`). |
+| 6 | `cv_documents` | `id` (`CV-xxx`) | Uploaded CV files, extracted raw text (`candidate_id` -> `users.id`). |
+| 7 | `evidence_snapshots` | `id` (`SNAP-xxx`) | Verified GitHub repo stats, commits, language metrics (`candidate_id`). |
+| 8 | `evaluation_audit_logs` | `id` (`AUDIT-xxx`) | Recruiter score adjustments, override justifications, hiring decisions. |
+
+---
+
+## Postman 8-Collection CRUD Test Suite
+
+A complete Postman test collection with 49 automated requests is included:
+- **Collection File:** `TalentVerify_CRUD_API.postman_collection.json`
+- **Environment File:** `TalentVerify_Local.postman_environment.json`
+- **Endpoints Supported for ALL 8 Collections:**
+  1. `findAll` (GET) — Fetch all documents
+  2. `findOne` (GET) — Fetch single document by ID
+  3. `save` (POST) — Insert/create a new validated document
+  4. `update` (PATCH) — Update fields of an existing document
+  5. `deleteOne` (DELETE) — Delete single document by ID
+  6. `deleteAll` (DELETE) — Safety-gated bulk deletion (`?confirm=true`)
+
+---
+
+## Database Validation & Seeder Scripts
+
+### 1. Run Schema & Referential Integrity Validator:
 ```powershell
-npm.cmd run dev
+python backend/database_validator.py
 ```
+*Validates that all foreign keys reference valid documents and all 8 collections are populated with zero orphan records.*
 
-- **Frontend Application:** [http://127.0.0.1:5173](http://127.0.0.1:5173)
-- **Backend Interactive API (Swagger):** [http://127.0.0.1:8000/docs](http://127.0.0.1:8000/docs)
-- **API Health Check:** [http://127.0.0.1:8000/api/health](http://127.0.0.1:8000/api/health)
-
-To stop running servers cleanly:
-```cmd
-stop_app.bat
-```
-
----
-
-## First-Time Manual Setup
-
-### Backend Setup:
+### 2. Run Database Normalization & Migration:
 ```powershell
-python -m venv backend\venv
-.\backend\venv\Scripts\python.exe -m pip install -r backend\requirements.txt
+python backend/normalize_database_schema.py
 ```
-
-Create `backend\.env` file (copy from `backend\.env.example` if available):
-```dotenv
-MONGODB_URI=mongodb://127.0.0.1:27017/talentverify
-GEMINI_API_KEY=your_gemini_api_key_here
-GITHUB_TOKEN=your_optional_github_token_here
-```
-
-### Frontend Setup:
-```powershell
-cd frontend
-npm install
-npm run build
-```
-
----
-
-## Demo Accounts
-
-| Role | Email | Password |
-|---|---|---|
-| **Recruiter** | `recruiter@gmail.com` | `recruiter123` |
-| **Candidate** | `candidate@gmail.com` | `candidate123` |
-
----
-
-## Project Structure
-
-```
-talentverify/
-├── backend/
-│   ├── main.py                  # FastAPI application entrypoint & API routes
-│   ├── database.py              # MongoDB connection & collection references
-│   ├── crud_routes.py           # Standardized 8-collection CRUD API router
-│   ├── database_validator.py    # Database schema & foreign key integrity validator
-│   ├── normalize_database_schema.py # 8-collection normalization & seeder
-│   └── services/                # Gemini CV parsing, scoring & evaluation services
-├── frontend/
-│   ├── src/
-│   │   ├── pages/               # CandidateDashboard, RecruiterDashboard, LoginPage
-│   │   ├── components/          # Header, BrandLogo, Modals
-│   │   └── services/api.js      # REST API client
-│   └── vite.config.js
-├── postman/                     # Postman 8-collection test suites
-├── TalentVerify_CRUD_API.postman_collection.json
-├── start_app.bat                # 1-click startup script
-├── stop_app.bat                 # 1-click shutdown script
-└── README.md
-```
+*Migrates and normalizes legacy data into the 8 distinct collections.*
