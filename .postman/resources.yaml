@@ -9,8 +9,8 @@ cloudResources:
     ../postman/collections/TalentVerify AI - Full CRUD API: 7f8e9d0a-talentverify-crud-v2
     ../postman/collections/TalentVerify AI - 8 Collections CRUD API: talentverify-8-collections-crud-v3
 
-# All resources in the `postman/` folder are automatically registered in Local View.
-# Point to additional files outside the `postman/` folder to register them individually. Example:
-#localResources:
-#  collections:
-#    - ../tests/E2E Test Collection/
+localResources:
+  collections:
+    - ../TalentVerify_CRUD_API.postman_collection.json
+  environments:
+    - ../TalentVerify_Local.postman_environment.json
