@@ -126,10 +126,12 @@ export default function RecruiterDashboard({
   const [reEvaluating, setReEvaluating] = useState(false);                          // Loading state during AI re-evaluation
   const [actionMessage, setActionMessage] = useState('');                            // Feedback/success/error banner message
 
-  // Privilege check: Demo recruiter account (recruiter@gmail.com / REC-001) can delete and manage job posts
-  const isDemoRecruiter = user?.email === 'recruiter@gmail.com' || user?.id === 'REC-001';
+  // Privilege check: Admin account (recruiter@gmail.com / REC-001 / admin role)
+  // Has full rights to view all candidate applications, delete any job post, and delete candidate submissions.
+  const isAdmin = user?.email === 'recruiter@gmail.com' || user?.id === 'REC-001' || user?.role === 'admin';
+  const isDemoRecruiter = isAdmin;
 
-  // Delete Job Post Handler (Exclusive to Demo Recruiter)
+  // Delete Job Post Handler (Exclusive to Admin)
   const handleDeleteJob = async (job) => {
     if (!window.confirm(`Are you sure you want to delete the job post "${job.title}"?\n\nThis will permanently delete this job and any associated applicant records.`)) {
       return;
@@ -146,6 +148,24 @@ export default function RecruiterDashboard({
       setActionMessage(`Job "${job.title}" deleted successfully.`);
     } catch (err) {
       setActionMessage(err.message || 'Failed to delete job.');
+    }
+  };
+
+  // Delete Candidate Submission Handler (Exclusive to Admin)
+  const handleDeleteApplication = async (application) => {
+    const candidateName = application.candidateSnapshot?.name || 'this candidate';
+    if (!window.confirm(`Are you sure you want to permanently delete ${candidateName}'s application for "${application.jobTitle}"?\n\nThis submission will be permanently removed from the system.`)) {
+      return;
+    }
+    try {
+      await apiRequest(`/api/applications/${application.id}?token=${encodeURIComponent(token)}`, {
+        method: 'DELETE',
+      });
+      setAllApplications((prev) => prev.filter((app) => app.id !== application.id));
+      setActionMessage(`Application for ${candidateName} was deleted successfully.`);
+      if (expandedId === application.id) setExpandedId(null);
+    } catch (err) {
+      setActionMessage(err.message || 'Failed to delete application.');
     }
   };
 
@@ -342,8 +362,19 @@ export default function RecruiterDashboard({
       {/* -------------------------------------------------------------------- */}
       <div className="flex flex-col gap-4 rounded-xl border border-slate-200 bg-white p-6 shadow-sm sm:flex-row sm:items-end sm:justify-between">
         <div>
-          <h2 className="text-2xl font-bold text-slate-900">Recruiter Home</h2>
-          <p className="mt-1 text-slate-500">Manage your job offers, review verified candidates, and inspect technical evidence.</p>
+          <div className="flex items-center gap-2">
+            <h2 className="text-2xl font-bold text-slate-900">Recruiter Home</h2>
+            {isAdmin && (
+              <span className="inline-flex items-center gap-1 rounded-full bg-red-100 border border-red-200 px-2.5 py-0.5 text-xs font-bold text-red-800">
+                <ShieldCheck size={14} /> Platform Admin
+              </span>
+            )}
+          </div>
+          <p className="mt-1 text-slate-500">
+            {isAdmin
+              ? 'Admin Mode: Full access to manage all job posts, inspect all candidate submissions, and delete records.'
+              : 'Manage your job offers, review verified candidates, and inspect technical evidence.'}
+          </p>
         </div>
         <button
           onClick={openNewJob}
@@ -377,12 +408,12 @@ export default function RecruiterDashboard({
                   >
                     <Pencil size={15} />
                   </button>
-                  {isDemoRecruiter && (
+                  {isAdmin && (
                     <button
                       onClick={() => handleDeleteJob(job)}
                       className="rounded-lg border border-red-200 p-1.5 text-red-500 hover:bg-red-50 hover:text-red-700 transition"
                       aria-label={`Delete ${job.title}`}
-                      title="Delete Job Post (Demo Recruiter Privilege)"
+                      title="Delete Job Post (Admin Privilege)"
                     >
                       <Trash2 size={15} />
                     </button>
@@ -525,6 +556,17 @@ export default function RecruiterDashboard({
                         <Eye size={15} />
                         {expanded ? 'Hide Details' : 'Review Details'}
                       </button>
+                      {isAdmin && (
+                        <button
+                          onClick={() => handleDeleteApplication(application)}
+                          className="flex items-center gap-1 rounded-lg border border-red-200 px-2.5 py-2 text-xs font-bold text-red-600 hover:bg-red-50 hover:border-red-300 transition"
+                          title="Permanently Delete Candidate Submission (Admin Privilege)"
+                          aria-label="Delete Submission"
+                        >
+                          <Trash2 size={14} />
+                          <span className="hidden sm:inline">Delete</span>
+                        </button>
+                      )}
                     </div>
                   </div>
 
@@ -791,6 +833,16 @@ export default function RecruiterDashboard({
                         >
                           Reject
                         </StatusButton>
+                        {isAdmin && (
+                          <button
+                            type="button"
+                            onClick={() => handleDeleteApplication(application)}
+                            className="flex items-center gap-1.5 rounded-lg border border-red-300 bg-red-50 px-3.5 py-2 text-xs font-bold text-red-700 hover:bg-red-100 hover:border-red-400 transition"
+                            title="Permanently Delete Candidate Submission (Admin Privilege)"
+                          >
+                            <Trash2 size={15} /> Delete Submission
+                          </button>
+                        )}
                       </div>
                     </div>
                   )}
