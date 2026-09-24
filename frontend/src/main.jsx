@@ -38,14 +38,18 @@ class ErrorBoundary extends React.Component {
       <main className="flex min-h-screen items-center justify-center bg-slate-950 p-6">
         <section className="w-full max-w-lg rounded-2xl bg-white p-8 text-center shadow-2xl">
           <h1 className="text-2xl font-bold text-slate-900">TalentVerifyAI could not start</h1>
-          <p className="mt-3 text-sm leading-6 text-slate-600">
+          <p className="mt-2 text-sm leading-6 text-slate-600">
             Click reload or reset your browser session to resume.
           </p>
-          <div className="mt-6 flex flex-wrap justify-center gap-3">
+          <div className="mt-4 rounded-xl border border-red-200 bg-red-50 p-3.5 text-left font-mono text-xs text-red-800 break-words">
+            <span className="font-bold">Error: </span>
+            {String(this.state.error?.message || this.state.error)}
+          </div>
+          <div className="mt-5 flex flex-wrap justify-center gap-3">
             <button
               type="button"
               onClick={() => window.location.reload()}
-              className="rounded-xl bg-blue-600 px-5 py-3 font-semibold text-white hover:bg-blue-700"
+              className="rounded-xl bg-blue-600 px-5 py-3 font-semibold text-white hover:bg-blue-700 shadow-sm"
             >
               Reload page
             </button>
@@ -56,15 +60,15 @@ class ErrorBoundary extends React.Component {
                 sessionStorage.clear();
                 window.location.href = '/';
               }}
-              className="rounded-xl border border-slate-300 px-5 py-3 font-semibold text-slate-700 hover:bg-slate-50"
+              className="rounded-xl border border-slate-300 px-5 py-3 font-semibold text-slate-700 hover:bg-slate-50 shadow-sm"
             >
               Clear Session & Reset
             </button>
           </div>
-          <details open className="mt-6 text-left text-xs text-slate-500">
-            <summary className="cursor-pointer font-semibold">Technical details</summary>
-            <pre className="mt-2 max-h-60 overflow-auto whitespace-pre-wrap rounded-lg bg-slate-100 p-3 font-mono text-[11px] text-red-700">
-              {String(this.state.error?.stack || this.state.error?.message || this.state.error)}
+          <details open className="mt-5 text-left text-xs text-slate-500">
+            <summary className="cursor-pointer font-semibold">Technical stack trace</summary>
+            <pre className="mt-2 max-h-48 overflow-auto whitespace-pre-wrap rounded-lg bg-slate-100 p-3 font-mono text-[11px] text-red-700">
+              {String(this.state.error?.stack || this.state.error)}
             </pre>
           </details>
         </section>
