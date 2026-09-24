@@ -1,0 +1,30 @@
+$kind: http-request
+url: "{{baseUrl}}/api/crud/analysis_runs"
+method: POST
+headers:
+  Content-Type: application/json
+  Authorization: Bearer {{token}}
+body:
+  type: text
+  content: |-
+    {
+      "candidateId": "CAND-001",
+      "jobId": "JOB-001",
+      "applicationId": "APP-001",
+      "analysisType": "job_match",
+      "score": 88.0,
+      "breakdown": {
+        "skills": 20.0,
+        "experience": 15.0,
+        "education": 10.0,
+        "projects": 10.0
+      },
+      "runAt": "2026-09-24T12:00:00+00:00"
+    }
+scripts:
+  - type: afterResponse
+    code: |-
+      var res = pm.response.json();
+      if (res.id) { pm.collectionVariables.set('runId', res.id); }
+    language: text/javascript
+order: 3000

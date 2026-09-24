@@ -1,0 +1,25 @@
+$kind: http-request
+url: "{{baseUrl}}/api/crud/applications"
+method: POST
+headers:
+  Content-Type: application/json
+  Authorization: Bearer {{token}}
+body:
+  type: text
+  content: |-
+    {
+      "userId": "CAND-001",
+      "jobId": "JOB-001",
+      "cvDocumentId": "CV-001",
+      "status": "Under review",
+      "score": 88.0,
+      "analysisType": "job_match",
+      "appliedAt": "2026-09-24T12:00:00+00:00"
+    }
+scripts:
+  - type: afterResponse
+    code: |-
+      var res = pm.response.json();
+      if (res.id) { pm.collectionVariables.set('applicationId', res.id); }
+    language: text/javascript
+order: 3000

@@ -1,0 +1,40 @@
+$kind: http-request
+url: "{{baseUrl}}/api/crud/candidate_profiles"
+method: POST
+headers:
+  Content-Type: application/json
+  Authorization: Bearer {{token}}
+body:
+  type: text
+  content: |-
+    {
+      "user_id": "CAND-001",
+      "personal_info": {
+        "full_name": "Nuwan Jayasuriya",
+        "email": "nuwan.j@example.com",
+        "headline": "Senior Cloud Backend Engineer",
+        "location": "Kandy, Sri Lanka",
+        "phone": "+94 71 555 4321",
+        "bio": "Expert in FastAPI, Docker, and Microservices architecture."
+      },
+      "technical_skills": [
+        "Python",
+        "FastAPI",
+        "Docker",
+        "PostgreSQL",
+        "AWS"
+      ],
+      "soft_skills": [
+        "Leadership",
+        "Problem Solving",
+        "Communication"
+      ],
+      "candidate_profile_score": 85.0
+    }
+scripts:
+  - type: afterResponse
+    code: |-
+      var res = pm.response.json();
+      if (res.id) { pm.collectionVariables.set('candidateId', res.id); }
+    language: text/javascript
+order: 3000

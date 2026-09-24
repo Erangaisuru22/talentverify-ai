@@ -1,0 +1,33 @@
+$kind: http-request
+url: "{{baseUrl}}/api/crud/jobs"
+method: POST
+headers:
+  Content-Type: application/json
+  Authorization: Bearer {{token}}
+body:
+  type: text
+  content: |-
+    {
+      "recruiterId": "REC-001",
+      "title": "Senior AI Systems Engineer",
+      "company": "TalentVerify Technologies",
+      "location": "Remote",
+      "type": "Full-time",
+      "workMode": "Remote",
+      "experience": 3,
+      "skills": "Python, Machine Learning, TensorFlow, NLP, FastAPI, SQL",
+      "description": "Design and build AI validation models, NLP pipelines, and document matching services.",
+      "status": "open",
+      "salary": {
+        "minimum": 200000,
+        "maximum": 350000,
+        "currency": "LKR"
+      }
+    }
+scripts:
+  - type: afterResponse
+    code: |-
+      var res = pm.response.json();
+      if (res.id) { pm.collectionVariables.set('jobId', res.id); }
+    language: text/javascript
+order: 3000

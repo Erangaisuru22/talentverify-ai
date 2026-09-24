@@ -1,0 +1,16 @@
+# Use this workspace to collaborate
+workspace:
+  id: 67c75bda-67c3-490b-81e1-81492cee8c8b
+
+# Each entry here maps a local resource to one or more corresponding objects in Postman Cloud
+
+cloudResources:
+  collections:
+    ../postman/collections/TalentVerify AI - Full CRUD API: 7f8e9d0a-talentverify-crud-v2
+    ../postman/collections/TalentVerify AI - 8 Collections CRUD API: talentverify-8-collections-crud-v3
+
+# All resources in the `postman/` folder are automatically registered in Local View.
+# Point to additional files outside the `postman/` folder to register them individually. Example:
+#localResources:
+#  collections:
+#    - ../tests/E2E Test Collection/

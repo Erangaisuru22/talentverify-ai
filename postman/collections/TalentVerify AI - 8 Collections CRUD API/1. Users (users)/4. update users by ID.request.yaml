@@ -1,0 +1,15 @@
+$kind: http-request
+url: "{{baseUrl}}/api/crud/users/{{userId}}"
+method: PUT
+headers:
+  Content-Type: application/json
+  Authorization: Bearer {{token}}
+body:
+  type: text
+  content: |-
+    {
+      "headline": "Senior Full Stack Tech Lead",
+      "phone": "+94 77 123 4567",
+      "location": "Colombo, Sri Lanka"
+    }
+order: 4000

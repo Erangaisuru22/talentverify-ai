@@ -1,0 +1,1713 @@
+{
+  "info": {
+    "_postman_id": "talentverify-8-collections-crud-v3",
+    "name": "TalentVerify AI - 8 Collections CRUD API",
+    "description": "Production Postman Collection for TalentVerify AI. Contains exact CRUD operations (findAll, findOne, save, update, deleteOne, deleteAll) for all 8 collections.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "http://127.0.0.1:8000",
+      "type": "string"
+    },
+    {
+      "key": "token",
+      "value": "REC-001",
+      "type": "string"
+    },
+    {
+      "key": "userId",
+      "value": "REC-001",
+      "type": "string"
+    },
+    {
+      "key": "candidateId",
+      "value": "CAND-001",
+      "type": "string"
+    },
+    {
+      "key": "jobId",
+      "value": "JOB-001",
+      "type": "string"
+    },
+    {
+      "key": "applicationId",
+      "value": "APP-001",
+      "type": "string"
+    },
+    {
+      "key": "cvId",
+      "value": "CV-001",
+      "type": "string"
+    },
+    {
+      "key": "snapshotId",
+      "value": "SNAP-001",
+      "type": "string"
+    },
+    {
+      "key": "auditId",
+      "value": "AUDIT-001",
+      "type": "string"
+    },
+    {
+      "key": "runId",
+      "value": "RUN-APP-001",
+      "type": "string"
+    }
+  ],
+  "item": [
+    {
+      "name": "0. Authentication & Session",
+      "item": [
+        {
+          "name": "Health Check",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/api/health",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "health"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Login Recruiter (Auto Token Save)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"mode\": \"login\",\n  \"email\": \"recruiter@gmail.com\",\n  \"password\": \"abcd123@\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/auth",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "auth"
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "var data = pm.response.json();",
+                  "if (data.token) {",
+                  "    pm.collectionVariables.set('token', data.token);",
+                  "    pm.collectionVariables.set('userId', data.user.id);",
+                  "}"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Login Candidate (Auto Token Save)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"mode\": \"login\",\n  \"email\": \"candidate@gmail.com\",\n  \"password\": \"abcd123@\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/auth",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "auth"
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "var data = pm.response.json();",
+                  "if (data.token) {",
+                  "    pm.collectionVariables.set('token', data.token);",
+                  "    pm.collectionVariables.set('candidateId', data.user.id);",
+                  "}"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Get Current App Data",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/app-data?token={{token}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "app-data"
+              ],
+              "query": [
+                {
+                  "key": "token",
+                  "value": "{{token}}"
+                }
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "1. Users (users)",
+      "item": [
+        {
+          "name": "1. findAll users",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/crud/users?limit=50&skip=0",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "crud",
+                "users"
+              ],
+              "query": [
+                {
+                  "key": "limit",
+                  "value": "50"
+                },
+                {
+                  "key": "skip",
+                  "value": "0"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "2. findOne users by ID",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/crud/users/{{userId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "crud",
+                "users",
+                "{{userId}}"
+              ]
+            }
+          }
+        },
+        {
+          "name": "3. save (create) users",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Nimal Perera\",\n  \"email\": \"nimal.perera@example.com\",\n  \"role\": \"candidate\",\n  \"password\": \"abcd123@\",\n  \"headline\": \"Full Stack Developer\",\n  \"location\": \"Colombo, Sri Lanka\",\n  \"phone\": \"+94 77 111 2222\",\n  \"isActive\": true\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/crud/users",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "crud",
+                "users"
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "var res = pm.response.json();",
+                  "if (res.id) { pm.collectionVariables.set('userId', res.id); }"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "4. update users by ID",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"headline\": \"Senior Full Stack Tech Lead\",\n  \"phone\": \"+94 77 123 4567\",\n  \"location\": \"Colombo, Sri Lanka\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/crud/users/{{userId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "crud",
+                "users",
+                "{{userId}}"
+              ]
+            }
+          }
+        },
+        {
+          "name": "5. deleteOne users by ID",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/crud/users/{{userId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "crud",
+                "users",
+                "{{userId}}"
+              ]
+            }
+          }
+        },
+        {
+          "name": "6. deleteAll users (Safety: confirm=true)",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/crud/users?confirm=true&role=test",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "crud",
+                "users"
+              ],
+              "query": [
+                {
+                  "key": "confirm",
+                  "value": "true"
+                }
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "2. Candidate Profiles (candidate_profiles)",
+      "item": [
+        {
+          "name": "1. findAll candidate_profiles",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/crud/candidate_profiles?limit=50&skip=0",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "crud",
+                "candidate_profiles"
+              ],
+              "query": [
+                {
+                  "key": "limit",
+                  "value": "50"
+                },
+                {
+                  "key": "skip",
+                  "value": "0"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "2. findOne candidate_profiles by ID",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/crud/candidate_profiles/{{candidateId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "crud",
+                "candidate_profiles",
+                "{{candidateId}}"
+              ]
+            }
+          }
+        },
+        {
+          "name": "3. save (create) candidate_profiles",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"user_id\": \"CAND-001\",\n  \"personal_info\": {\n    \"full_name\": \"Nuwan Jayasuriya\",\n    \"email\": \"nuwan.j@example.com\",\n    \"headline\": \"Senior Cloud Backend Engineer\",\n    \"location\": \"Kandy, Sri Lanka\",\n    \"phone\": \"+94 71 555 4321\",\n    \"bio\": \"Expert in FastAPI, Docker, and Microservices architecture.\"\n  },\n  \"technical_skills\": [\n    \"Python\",\n    \"FastAPI\",\n    \"Docker\",\n    \"PostgreSQL\",\n    \"AWS\"\n  ],\n  \"soft_skills\": [\n    \"Leadership\",\n    \"Problem Solving\",\n    \"Communication\"\n  ],\n  \"candidate_profile_score\": 85.0\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/crud/candidate_profiles",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "crud",
+                "candidate_profiles"
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "var res = pm.response.json();",
+                  "if (res.id) { pm.collectionVariables.set('candidateId', res.id); }"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "4. update candidate_profiles by ID",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"personal_info\": {\n    \"headline\": \"Principal Architect & Lead Engineer\"\n  },\n  \"candidate_profile_score\": 90.0\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/crud/candidate_profiles/{{candidateId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "crud",
+                "candidate_profiles",
+                "{{candidateId}}"
+              ]
+            }
+          }
+        },
+        {
+          "name": "5. deleteOne candidate_profiles by ID",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/crud/candidate_profiles/{{candidateId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "crud",
+                "candidate_profiles",
+                "{{candidateId}}"
+              ]
+            }
+          }
+        },
+        {
+          "name": "6. deleteAll candidate_profiles (Safety: confirm=true)",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/crud/candidate_profiles?confirm=true&source=test",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "crud",
+                "candidate_profiles"
+              ],
+              "query": [
+                {
+                  "key": "confirm",
+                  "value": "true"
+                }
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "3. Jobs (jobs)",
+      "item": [
+        {
+          "name": "1. findAll jobs",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/crud/jobs?limit=50&skip=0",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "crud",
+                "jobs"
+              ],
+              "query": [
+                {
+                  "key": "limit",
+                  "value": "50"
+                },
+                {
+                  "key": "skip",
+                  "value": "0"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "2. findOne jobs by ID",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/crud/jobs/{{jobId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "crud",
+                "jobs",
+                "{{jobId}}"
+              ]
+            }
+          }
+        },
+        {
+          "name": "3. save (create) jobs",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"recruiterId\": \"REC-001\",\n  \"title\": \"Senior AI Systems Engineer\",\n  \"company\": \"TalentVerify Technologies\",\n  \"location\": \"Remote\",\n  \"type\": \"Full-time\",\n  \"workMode\": \"Remote\",\n  \"experience\": 3,\n  \"skills\": \"Python, Machine Learning, TensorFlow, NLP, FastAPI, SQL\",\n  \"description\": \"Design and build AI validation models, NLP pipelines, and document matching services.\",\n  \"status\": \"open\",\n  \"salary\": {\n    \"minimum\": 200000,\n    \"maximum\": 350000,\n    \"currency\": \"LKR\"\n  }\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/crud/jobs",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "crud",
+                "jobs"
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "var res = pm.response.json();",
+                  "if (res.id) { pm.collectionVariables.set('jobId', res.id); }"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "4. update jobs by ID",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"title\": \"Lead AI Systems Engineer (Updated)\",\n  \"experience\": 4,\n  \"status\": \"open\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/crud/jobs/{{jobId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "crud",
+                "jobs",
+                "{{jobId}}"
+              ]
+            }
+          }
+        },
+        {
+          "name": "5. deleteOne jobs by ID",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/crud/jobs/{{jobId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "crud",
+                "jobs",
+                "{{jobId}}"
+              ]
+            }
+          }
+        },
+        {
+          "name": "6. deleteAll jobs (Safety: confirm=true)",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/crud/jobs?confirm=true&status=draft",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "crud",
+                "jobs"
+              ],
+              "query": [
+                {
+                  "key": "confirm",
+                  "value": "true"
+                }
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "4. Applications (applications)",
+      "item": [
+        {
+          "name": "1. findAll applications",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/crud/applications?limit=50&skip=0",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "crud",
+                "applications"
+              ],
+              "query": [
+                {
+                  "key": "limit",
+                  "value": "50"
+                },
+                {
+                  "key": "skip",
+                  "value": "0"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "2. findOne applications by ID",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/crud/applications/{{applicationId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "crud",
+                "applications",
+                "{{applicationId}}"
+              ]
+            }
+          }
+        },
+        {
+          "name": "3. save (create) applications",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"userId\": \"CAND-001\",\n  \"jobId\": \"JOB-001\",\n  \"cvDocumentId\": \"CV-001\",\n  \"status\": \"Under review\",\n  \"score\": 88.0,\n  \"analysisType\": \"job_match\",\n  \"appliedAt\": \"2026-09-24T12:00:00+00:00\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/crud/applications",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "crud",
+                "applications"
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "var res = pm.response.json();",
+                  "if (res.id) { pm.collectionVariables.set('applicationId', res.id); }"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "4. update applications by ID",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"status\": \"Shortlisted\",\n  \"notes\": \"Candidate passed initial review. Scheduled for technical interview.\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/crud/applications/{{applicationId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "crud",
+                "applications",
+                "{{applicationId}}"
+              ]
+            }
+          }
+        },
+        {
+          "name": "5. deleteOne applications by ID",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/crud/applications/{{applicationId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "crud",
+                "applications",
+                "{{applicationId}}"
+              ]
+            }
+          }
+        },
+        {
+          "name": "6. deleteAll applications (Safety: confirm=true)",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/crud/applications?confirm=true&status=Rejected",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "crud",
+                "applications"
+              ],
+              "query": [
+                {
+                  "key": "confirm",
+                  "value": "true"
+                }
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "5. CV Documents (cv_documents)",
+      "item": [
+        {
+          "name": "1. findAll cv_documents",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/crud/cv_documents?limit=50&skip=0",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "crud",
+                "cv_documents"
+              ],
+              "query": [
+                {
+                  "key": "limit",
+                  "value": "50"
+                },
+                {
+                  "key": "skip",
+                  "value": "0"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "2. findOne cv_documents by ID",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/crud/cv_documents/{{cvId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "crud",
+                "cv_documents",
+                "{{cvId}}"
+              ]
+            }
+          }
+        },
+        {
+          "name": "3. save (create) cv_documents",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"candidate_id\": \"CAND-001\",\n  \"file_name\": \"Demo_Candidate_FullStack_CV.pdf\",\n  \"content_type\": \"application/pdf\",\n  \"file_size\": 40398,\n  \"parsing_status\": \"completed\",\n  \"extracted_skills\": [\n    \"React\",\n    \"FastAPI\",\n    \"Python\",\n    \"SQL\",\n    \"Docker\"\n  ],\n  \"structured_profile\": {\n    \"experience_years\": 3.0,\n    \"education_level\": \"Bachelor's Degree\"\n  }\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/crud/cv_documents",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "crud",
+                "cv_documents"
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "var res = pm.response.json();",
+                  "if (res.id) { pm.collectionVariables.set('cvId', res.id); }"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "4. update cv_documents by ID",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"parsing_status\": \"completed\",\n  \"notes\": \"CV verified and parsed successfully.\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/crud/cv_documents/{{cvId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "crud",
+                "cv_documents",
+                "{{cvId}}"
+              ]
+            }
+          }
+        },
+        {
+          "name": "5. deleteOne cv_documents by ID",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/crud/cv_documents/{{cvId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "crud",
+                "cv_documents",
+                "{{cvId}}"
+              ]
+            }
+          }
+        },
+        {
+          "name": "6. deleteAll cv_documents (Safety: confirm=true)",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/crud/cv_documents?confirm=true&parsing_status=failed",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "crud",
+                "cv_documents"
+              ],
+              "query": [
+                {
+                  "key": "confirm",
+                  "value": "true"
+                }
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "6. Evidence Snapshots (evidence_snapshots)",
+      "item": [
+        {
+          "name": "1. findAll evidence_snapshots",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/crud/evidence_snapshots?limit=50&skip=0",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "crud",
+                "evidence_snapshots"
+              ],
+              "query": [
+                {
+                  "key": "limit",
+                  "value": "50"
+                },
+                {
+                  "key": "skip",
+                  "value": "0"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "2. findOne evidence_snapshots by ID",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/crud/evidence_snapshots/{{snapshotId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "crud",
+                "evidence_snapshots",
+                "{{snapshotId}}"
+              ]
+            }
+          }
+        },
+        {
+          "name": "3. save (create) evidence_snapshots",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"candidate_id\": \"CAND-001\",\n  \"platform\": \"github\",\n  \"username\": \"demo-candidate\",\n  \"profile_url\": \"https://github.com/demo-candidate\",\n  \"verification_status\": \"verified\",\n  \"verification_score\": 92.0,\n  \"verified_technologies\": [\n    \"React\",\n    \"Python\",\n    \"FastAPI\",\n    \"TypeScript\",\n    \"Docker\"\n  ],\n  \"verified_at\": \"2026-09-24T12:00:00+00:00\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/crud/evidence_snapshots",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "crud",
+                "evidence_snapshots"
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "var res = pm.response.json();",
+                  "if (res.id) { pm.collectionVariables.set('snapshotId', res.id); }"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "4. update evidence_snapshots by ID",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"verification_status\": \"verified\",\n  \"verification_score\": 95.0\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/crud/evidence_snapshots/{{snapshotId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "crud",
+                "evidence_snapshots",
+                "{{snapshotId}}"
+              ]
+            }
+          }
+        },
+        {
+          "name": "5. deleteOne evidence_snapshots by ID",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/crud/evidence_snapshots/{{snapshotId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "crud",
+                "evidence_snapshots",
+                "{{snapshotId}}"
+              ]
+            }
+          }
+        },
+        {
+          "name": "6. deleteAll evidence_snapshots (Safety: confirm=true)",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/crud/evidence_snapshots?confirm=true&platform=test",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "crud",
+                "evidence_snapshots"
+              ],
+              "query": [
+                {
+                  "key": "confirm",
+                  "value": "true"
+                }
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "7. Audit Logs (audit_logs)",
+      "item": [
+        {
+          "name": "1. findAll audit_logs",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/crud/audit_logs?limit=50&skip=0",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "crud",
+                "audit_logs"
+              ],
+              "query": [
+                {
+                  "key": "limit",
+                  "value": "50"
+                },
+                {
+                  "key": "skip",
+                  "value": "0"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "2. findOne audit_logs by ID",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/crud/audit_logs/{{auditId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "crud",
+                "audit_logs",
+                "{{auditId}}"
+              ]
+            }
+          }
+        },
+        {
+          "name": "3. save (create) audit_logs",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"action\": \"application_status_updated\",\n  \"userId\": \"REC-001\",\n  \"performedBy\": \"REC-001\",\n  \"documentId\": \"APP-001\",\n  \"collectionName\": \"applications\",\n  \"details\": {\n    \"previous_status\": \"Under review\",\n    \"new_status\": \"Shortlisted\"\n  }\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/crud/audit_logs",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "crud",
+                "audit_logs"
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "var res = pm.response.json();",
+                  "if (res.id) { pm.collectionVariables.set('auditId', res.id); }"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "4. update audit_logs by ID",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"notes\": \"Reviewed and acknowledged by recruiter team.\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/crud/audit_logs/{{auditId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "crud",
+                "audit_logs",
+                "{{auditId}}"
+              ]
+            }
+          }
+        },
+        {
+          "name": "5. deleteOne audit_logs by ID",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/crud/audit_logs/{{auditId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "crud",
+                "audit_logs",
+                "{{auditId}}"
+              ]
+            }
+          }
+        },
+        {
+          "name": "6. deleteAll audit_logs (Safety: confirm=true)",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/crud/audit_logs?confirm=true&action=test_action",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "crud",
+                "audit_logs"
+              ],
+              "query": [
+                {
+                  "key": "confirm",
+                  "value": "true"
+                }
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "8. Analysis Runs (analysis_runs)",
+      "item": [
+        {
+          "name": "1. findAll analysis_runs",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/crud/analysis_runs?limit=50&skip=0",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "crud",
+                "analysis_runs"
+              ],
+              "query": [
+                {
+                  "key": "limit",
+                  "value": "50"
+                },
+                {
+                  "key": "skip",
+                  "value": "0"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "2. findOne analysis_runs by ID",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/crud/analysis_runs/{{runId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "crud",
+                "analysis_runs",
+                "{{runId}}"
+              ]
+            }
+          }
+        },
+        {
+          "name": "3. save (create) analysis_runs",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"candidateId\": \"CAND-001\",\n  \"jobId\": \"JOB-001\",\n  \"applicationId\": \"APP-001\",\n  \"analysisType\": \"job_match\",\n  \"score\": 88.0,\n  \"breakdown\": {\n    \"skills\": 20.0,\n    \"experience\": 15.0,\n    \"education\": 10.0,\n    \"projects\": 10.0\n  },\n  \"runAt\": \"2026-09-24T12:00:00+00:00\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/crud/analysis_runs",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "crud",
+                "analysis_runs"
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "var res = pm.response.json();",
+                  "if (res.id) { pm.collectionVariables.set('runId', res.id); }"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "4. update analysis_runs by ID",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"score\": 90.0,\n  \"notes\": \"Score updated after manual skills validation.\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/crud/analysis_runs/{{runId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "crud",
+                "analysis_runs",
+                "{{runId}}"
+              ]
+            }
+          }
+        },
+        {
+          "name": "5. deleteOne analysis_runs by ID",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/crud/analysis_runs/{{runId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "crud",
+                "analysis_runs",
+                "{{runId}}"
+              ]
+            }
+          }
+        },
+        {
+          "name": "6. deleteAll analysis_runs (Safety: confirm=true)",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/crud/analysis_runs?confirm=true&analysisType=test",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "crud",
+                "analysis_runs"
+              ],
+              "query": [
+                {
+                  "key": "confirm",
+                  "value": "true"
+                }
+              ]
+            }
+          }
+        }
+      ]
+    }
+  ]
+}

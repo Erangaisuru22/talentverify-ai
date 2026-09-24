@@ -1,0 +1,23 @@
+$kind: http-request
+url: "{{baseUrl}}/api/auth"
+method: POST
+headers:
+  Content-Type: application/json
+body:
+  type: text
+  content: |-
+    {
+      "mode": "login",
+      "email": "candidate@gmail.com",
+      "password": "abcd123@"
+    }
+scripts:
+  - type: afterResponse
+    code: |-
+      var data = pm.response.json();
+      if (data.token) {
+          pm.collectionVariables.set('token', data.token);
+          pm.collectionVariables.set('candidateId', data.user.id);
+      }
+    language: text/javascript
+order: 3000

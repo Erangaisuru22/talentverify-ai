@@ -1,0 +1,27 @@
+$kind: http-request
+url: "{{baseUrl}}/api/crud/audit_logs"
+method: POST
+headers:
+  Content-Type: application/json
+  Authorization: Bearer {{token}}
+body:
+  type: text
+  content: |-
+    {
+      "action": "application_status_updated",
+      "userId": "REC-001",
+      "performedBy": "REC-001",
+      "documentId": "APP-001",
+      "collectionName": "applications",
+      "details": {
+        "previous_status": "Under review",
+        "new_status": "Shortlisted"
+      }
+    }
+scripts:
+  - type: afterResponse
+    code: |-
+      var res = pm.response.json();
+      if (res.id) { pm.collectionVariables.set('auditId', res.id); }
+    language: text/javascript
+order: 3000

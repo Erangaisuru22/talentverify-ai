@@ -1,0 +1,9 @@
+$kind: http-request
+url: "{{baseUrl}}/api/crud/users?limit=50&skip=0"
+method: GET
+headers:
+  Authorization: Bearer {{token}}
+queryParams:
+  limit: "50"
+  skip: "0"
+order: 1000
