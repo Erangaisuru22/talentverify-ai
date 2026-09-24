@@ -756,19 +756,9 @@ export default function RecruiterDashboard({
                         </div>
                       )}
 
-                      {/* Recruiter Score Overrides - Restricted to verified Company Recruiters */}
-                      {!isDemoRecruiter ? (
+                      {/* Recruiter Score Overrides - Exclusive to registered Company accounts */}
+                      {!isDemoRecruiter && (
                         <ScoreOverrides application={application} token={token} />
-                      ) : (
-                        <div className="rounded-xl border border-dashed border-amber-300 bg-amber-50/80 p-5 text-center">
-                          <div className="mx-auto flex h-11 w-11 items-center justify-center rounded-xl bg-amber-100 border border-amber-300 text-amber-800 mb-2.5">
-                            <ShieldCheck size={22} />
-                          </div>
-                          <h4 className="font-bold text-sm text-amber-950">Company Recruiter Feature</h4>
-                          <p className="mt-1 text-xs text-amber-800 max-w-lg mx-auto leading-relaxed">
-                            Detailed AI match assessments, technical assessment score recording, and recruiter score overrides are reserved for registered Company accounts.
-                          </p>
-                        </div>
                       )}
 
                       {/* Status Buttons */}
