@@ -355,7 +355,15 @@ export default function CandidateDashboard({ jobs = [], user, token, application
     {hasProfileSkills && result && !existingApplication && !applied ? <div className="relative overflow-hidden rounded-xl border bg-white p-6 shadow-sm">
       <div className="absolute inset-x-0 top-0 h-1 bg-blue-600"/>
       <h3 className="mb-6 flex items-center gap-2 text-lg font-bold"><span className="rounded-lg bg-blue-100 p-1.5 text-blue-700"><Target size={18}/></span>Compatibility Analysis</h3>
-      <div className="mb-6 flex items-center gap-4"><div className={`flex h-16 w-16 items-center justify-center rounded-full border-4 ${result.score>=80?'border-green-500 text-green-600':result.score>=50?'border-orange-500 text-orange-600':'border-red-500 text-red-600'}`}><b>{result.score}%</b></div><div><p className="font-bold">{result.match_level||(result.score>=80?'Strong Match':result.score>=50?'Moderate Match':'Low Match')}</p><p className="text-sm text-slate-500">Complete database profile matched against this job</p><p className="mt-1 text-xs font-semibold text-emerald-700">Evidence confidence: {result.evidence_confidence??0}%</p></div></div>
+      <div className="mb-6 flex items-center gap-4">
+        <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl bg-blue-50 border border-blue-200 text-blue-700">
+          <CheckCircle size={28} />
+        </div>
+        <div>
+          <p className="font-bold text-slate-900 text-base">{result.match_level || 'Role Compatibility Evaluated'}</p>
+          <p className="text-sm text-slate-500">Your profile and skills have been analyzed against this job's criteria</p>
+        </div>
+      </div>
       {/* High-level candidate summary: match score, strengths, gaps, and recommendation */}
       <ResultBox title="Strongest Matches" text={result.strongest_matches?.join(', ')||'No strong match evidence identified'} color="green"/>
       <ResultBox title="Skill Gaps" text={result.skill_gaps?.join(', ')||'No confirmed skill gaps'} color="red"/>
@@ -550,34 +558,19 @@ function ApplicationReview({ application }) {
           </dl>
         </div>
 
-        {/* Right Column: Total Match Score */}
+        {/* Right Column: Application Status & Review Stage */}
         <div className="flex flex-col justify-between rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
           <div>
-            <h4 className="text-xs font-bold uppercase tracking-wider text-slate-500">Application Score</h4>
+            <h4 className="text-xs font-bold uppercase tracking-wider text-slate-500">Application Status</h4>
             <div className="mt-4 flex items-center gap-4">
-              <div className={`flex h-16 w-16 shrink-0 items-center justify-center rounded-2xl border-2 text-xl font-black ${
-                score >= 80 ? 'border-emerald-200 bg-emerald-50 text-emerald-700' :
-                score >= 50 ? 'border-blue-200 bg-blue-50 text-blue-700' :
-                'border-amber-200 bg-amber-50 text-amber-700'
-              }`}>
-                {score}%
+              <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl border-2 border-blue-200 bg-blue-50 text-blue-700">
+                <Clock3 size={24} />
               </div>
               <div className="space-y-1">
-                <div className="flex flex-wrap items-center gap-2">
-                  <span className={`rounded-full px-2.5 py-0.5 text-xs font-bold ${
-                    score >= 80 ? 'bg-emerald-100 text-emerald-800' :
-                    score >= 50 ? 'bg-blue-100 text-blue-800' :
-                    'bg-amber-100 text-amber-800'
-                  }`}>
-                    {matchLevel}
-                  </span>
-                  {analysis.evidence_confidence != null && (
-                    <span className="rounded-full bg-emerald-50 px-2.5 py-0.5 text-xs font-bold text-emerald-700">
-                      Evidence confidence {analysis.evidence_confidence}%
-                    </span>
-                  )}
-                </div>
-                <p className="text-xs text-slate-500">Total job-fit score evaluated against role criteria</p>
+                <span className="rounded-full bg-amber-100 px-3 py-1 text-xs font-bold text-amber-800">
+                  {application.status || 'Under review'}
+                </span>
+                <p className="text-xs text-slate-500">Application submitted and awaiting company recruiter review</p>
               </div>
             </div>
           </div>
@@ -585,7 +578,7 @@ function ApplicationReview({ application }) {
           <div className="mt-4 rounded-lg border border-slate-100 bg-slate-50 p-3 text-xs text-slate-500">
             <p className="font-semibold text-slate-700">Recruiter Evaluation Note</p>
             <p className="mt-0.5 leading-relaxed">
-              Detailed category weighting and calculation breakdowns are reserved for the hiring team.
+              Internal scoring rubrics and recruiter evaluations are kept confidential to ensure fair hiring.
             </p>
           </div>
         </div>
@@ -648,7 +641,6 @@ function ApplicationStatus({ applications, jobs, onWithdraw }) {
                     <div className="mt-2 flex flex-wrap gap-3 text-xs text-slate-500">
                       <span className="flex items-center gap-1"><MapPin size={13}/>{application.location || job?.location}</span>
                       <span className="flex items-center gap-1"><Clock3 size={13}/>Applied {new Date(application.appliedAt).toLocaleDateString()}</span>
-                      <span className="font-bold text-blue-700">{application.score}% match</span>
                     </div>
                   </div>
                 </div>
