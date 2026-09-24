@@ -534,9 +534,6 @@ export default function RecruiterDashboard({
                               <ShieldCheck size={12} /> Verified GitHub
                             </span>
                           )}
-                          <span className="rounded-full bg-slate-100 px-2 py-0.5 text-[10px] font-bold text-slate-600">
-                            v{application.evaluation_version || 1}
-                          </span>
                         </div>
                         <p className="text-sm text-slate-500">
                           Applied for <span className="font-semibold text-slate-700">{application.jobTitle}</span>
