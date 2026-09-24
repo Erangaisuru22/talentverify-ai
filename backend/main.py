@@ -502,9 +502,14 @@ def authenticate(payload: AuthRequest):
 def app_data(token: str):
     user = require_session(token)
     jobs = [public_document(item) for item in db.jobs.find().sort("createdAt", -1)]
+    is_admin = (user.get("role") == "admin" or user.get("email") == "recruiter@gmail.com" or user.get("id") == "REC-001")
     if user["role"] == "recruiter":
-        job_ids = [job["id"] for job in jobs if job.get("recruiterId") == user["id"]]
-        applications = [public_document(item) for item in db.applications.find({"jobId": {"$in": job_ids}}).sort("appliedAt", -1)]
+        if is_admin:
+            # Platform Admin can view all candidate submissions across all jobs
+            applications = [public_document(item) for item in db.applications.find().sort("appliedAt", -1)]
+        else:
+            job_ids = [job["id"] for job in jobs if job.get("recruiterId") == user["id"]]
+            applications = [public_document(item) for item in db.applications.find({"jobId": {"$in": job_ids}}).sort("appliedAt", -1)]
         for application in applications:
             snapshot = application.setdefault("candidateSnapshot", {})
             if not snapshot.get("portfolioUrl"):
@@ -918,12 +923,12 @@ def delete_job(job_id: str, token: str):
     user = require_session(token)
     if user["role"] != "recruiter":
         raise HTTPException(status_code=403, detail="Only recruiters can delete jobs.")
-    job = db.jobs.find_one({"id": job_id, "recruiterId": user["id"]})
+    is_admin = (user.get("email") == "recruiter@gmail.com" or user.get("id") == "REC-001" or user.get("role") == "admin")
+    job = db.jobs.find_one({"id": job_id}) if is_admin else db.jobs.find_one({"id": job_id, "recruiterId": user["id"]})
     if not job:
         raise HTTPException(status_code=404, detail="Job not found.")
 
-    is_demo_recruiter = (user.get("email") == "recruiter@gmail.com" or user.get("id") == "REC-001")
-    if not is_demo_recruiter:
+    if not is_admin:
         if job.get("status") in ["open", "published"]:
             raise HTTPException(
                 status_code=400,
@@ -936,14 +941,14 @@ def delete_job(job_id: str, token: str):
                 detail=f"Cannot delete job: {app_count} candidate(s) have already applied."
             )
     else:
-        # Demo recruiter has management rights to delete posts: cascade cleanup linked applications and analysis runs
+        # Admin has full management rights: cascade cleanup linked applications and analysis runs
         db.applications.delete_many({"jobId": job_id})
         db.analysis_runs.delete_many({"jobId": job_id})
 
-    result = db.jobs.delete_one({"id": job_id, "recruiterId": user["id"]})
+    result = db.jobs.delete_one({"id": job_id})
     if not result.deleted_count:
         raise HTTPException(status_code=404, detail="Job not found.")
-    audit(db, "job_deleted", user["id"], "job", job_id, {"title": job.get("title"), "demo_recruiter_override": is_demo_recruiter})
+    audit(db, "job_deleted", user["id"], "job", job_id, {"title": job.get("title"), "admin_override": is_admin})
     return {"ok": True, "message": "Job deleted successfully."}
 
 
@@ -1266,10 +1271,20 @@ async def re_evaluate_application(application_id: str, token: str):
 @app.delete("/api/applications/{application_id}")
 def delete_application(application_id: str, token: str):
     user = require_session(token)
-    result = db.applications.delete_one({"id": application_id, "userId": user["id"]})
+    is_admin = (user.get("role") == "admin" or user.get("email") == "recruiter@gmail.com" or user.get("id") == "REC-001")
+    if is_admin:
+        result = db.applications.delete_one({"id": application_id})
+        db.analysis_runs.delete_many({"applicationId": application_id})
+    elif user.get("role") == "recruiter":
+        owned_jobs = [j["id"] for j in db.jobs.find({"recruiterId": user["id"]}, {"id": 1})]
+        result = db.applications.delete_one({"id": application_id, "jobId": {"$in": owned_jobs}})
+        db.analysis_runs.delete_many({"applicationId": application_id})
+    else:
+        result = db.applications.delete_one({"id": application_id, "userId": user["id"]})
     if not result.deleted_count:
         raise HTTPException(status_code=404, detail="Application not found.")
-    return {"ok": True}
+    audit(db, "application_deleted", user["id"], "application", application_id, {"admin_deleted": is_admin})
+    return {"ok": True, "message": "Application deleted successfully."}
 
 
 @app.patch("/api/applications/{application_id}/status")
