@@ -1,63 +1,117 @@
-# TalentVerifyAI
+# TalentVerify AI
+### Intelligent Multi-Source Candidate Screening & Verification Platform
 
-TalentVerifyAI is a React + Tailwind frontend with a FastAPI backend and MongoDB storage. It
-supports candidate CV/profile evidence, GitHub repository verification, portfolio and LinkedIn
-link evidence, job-specific scoring, and recruiter review.
+TalentVerify AI is an advanced AI-powered web platform designed to streamline and automate technical candidate screening. It bridges candidates and recruiters by combining intelligent CV parsing, GitHub code evidence verification, portfolio validation, and transparent multi-dimensional job matching.
 
-## Current evidence features
+---
 
-- GitHub profiles are scanned through the GitHub API for repositories, languages, technologies,
-	repository quality, and skill-level evidence.
-- The Multi-Source Technical Skills Matrix combines CV, experience, projects, GitHub, portfolio,
-	and LinkedIn sources for each saved technical skill.
-- Portfolio and LinkedIn links are validated as public HTTP/HTTPS links and shown as clickable
-	evidence sources in the matrix.
-- Candidates can verify a LinkedIn profile or post URL. This verifies the URL format and stores a
-	timestamp; it does not claim that LinkedIn post content or identity was independently verified.
-- The matrix initially shows 32 rows and provides a `See more` control for additional skills.
+## Key Highlights & Capabilities
 
-## Run the app
+- **AI-Powered CV Parsing:** Uses Google Gemini API to extract technical skills, soft skills, projects, and work history directly from PDF, DOCX, and TXT files.
+- **GitHub Code Evidence Verification:** Connects to GitHub API to scan candidate repositories, analyze language distributions, code quality indicators, and verify declared skills against real code commits.
+- **Normalized 8-Collection MongoDB Architecture:** Fully normalized database schema (`users`, `candidate_profiles`, `jobs`, `applications`, `candidate_evaluations`, `cv_documents`, `evidence_snapshots`, `evaluation_audit_logs`) guaranteeing referential integrity and complete auditability.
+- **Dual Role Portals:**
+  - **Candidate Portal:** Real-time job discovery, instant AI compatibility analysis, strengths & skill gap insights, and application tracking.
+  - **Recruiter Portal:** Job posting management, applicant ranking, evaluation versioning (`Re-evaluate with Latest Evidence`), and documented recruiter score overrides.
+- **Postman CRUD API:** Full RESTful collection covering `findAll`, `findOne`, `save`, `updateOne`, `deleteOne`, and `deleteAll` across all 8 database collections.
 
-Start MongoDB, open PowerShell in this folder, and run:
+---
+
+## Technology Stack
+
+- **Frontend:** React 18, Vite, TailwindCSS, Vanilla CSS, Lucide Icons
+- **Backend:** Python 3.10+, FastAPI, Uvicorn, Pydantic v2
+- **AI & Evaluation:** Google Gemini AI (2.5 / Flash), Multi-dimensional Scoring Engine
+- **Database:** MongoDB / PyMongo (Normalized 8 collections)
+- **API Testing:** Postman Collection v2.1 with local environment
+
+---
+
+## Getting Started
+
+### 1. Prerequisites
+- Python 3.10 or higher
+- Node.js (v18 or higher) & npm
+- MongoDB Community Server running locally on port `27017`
+
+### 2. Quick Start
+
+Start MongoDB, open your terminal in the project root, and run:
+
+```cmd
+start_app.bat
+```
+
+Or run via npm:
 
 ```powershell
 npm.cmd run dev
 ```
 
-Then open **http://127.0.0.1:5173**. Do not open `frontend/index.html` directly; Vite must serve it.
-The API documentation is at **http://127.0.0.1:8000/docs**. Press `Ctrl+C` to stop the app.
+- **Frontend Application:** [http://127.0.0.1:5173](http://127.0.0.1:5173)
+- **Backend Interactive API (Swagger):** [http://127.0.0.1:8000/docs](http://127.0.0.1:8000/docs)
+- **API Health Check:** [http://127.0.0.1:8000/api/health](http://127.0.0.1:8000/api/health)
 
-## First-time installation
-
-```powershell
-python -m venv backend\venv; .\backend\venv\Scripts\python.exe -m pip install -r backend\requirements.txt; npm.cmd install --prefix frontend
+To stop running servers cleanly:
+```cmd
+stop_app.bat
 ```
 
-Copy `backend/.env.example` to `backend/.env`. The Gemini key is optional because the app has
-a local analysis fallback. MongoDB defaults to `mongodb://127.0.0.1:27017`.
+---
 
-For GitHub evidence verification, add an optional token to `backend/.env`:
+## First-Time Manual Setup
 
+### Backend Setup:
+```powershell
+python -m venv backend\venv
+.\backend\venv\Scripts\python.exe -m pip install -r backend\requirements.txt
+```
+
+Create `backend\.env` file (copy from `backend\.env.example` if available):
 ```dotenv
-GITHUB_TOKEN=your_fine_grained_token
+MONGODB_URI=mongodb://127.0.0.1:27017/talentverify
+GEMINI_API_KEY=your_gemini_api_key_here
+GITHUB_TOKEN=your_optional_github_token_here
 ```
 
-Public profiles also work without a token, but GitHub applies a much lower anonymous API rate
-limit. The token stays in the backend; candidates only submit a public profile URL or username.
-
-## Demo accounts
-
-- Candidate: `candidate@gmail.com` / `abcd123@`
-- Recruiter: `recruiter@gmail.com` / `abcd123@`
-
-## White-screen troubleshooting
-
-1. Open the exact Vite URL: http://127.0.0.1:5173.
-2. Hard-refresh with `Ctrl+F5`, or clear site data for `127.0.0.1`.
-3. Confirm MongoDB is running if login reports a database error.
-
-## Production build check
-
+### Frontend Setup:
 ```powershell
-npm.cmd run build --prefix frontend
+cd frontend
+npm install
+npm run build
+```
+
+---
+
+## Demo Accounts
+
+| Role | Email | Password |
+|---|---|---|
+| **Recruiter** | `recruiter@gmail.com` | `recruiter123` |
+| **Candidate** | `candidate@gmail.com` | `candidate123` |
+
+---
+
+## Project Structure
+
+```
+talentverify/
+├── backend/
+│   ├── main.py                  # FastAPI application entrypoint & API routes
+│   ├── database.py              # MongoDB connection & collection references
+│   ├── crud_routes.py           # Standardized 8-collection CRUD API router
+│   ├── database_validator.py    # Database schema & foreign key integrity validator
+│   ├── normalize_database_schema.py # 8-collection normalization & seeder
+│   └── services/                # Gemini CV parsing, scoring & evaluation services
+├── frontend/
+│   ├── src/
+│   │   ├── pages/               # CandidateDashboard, RecruiterDashboard, LoginPage
+│   │   ├── components/          # Header, BrandLogo, Modals
+│   │   └── services/api.js      # REST API client
+│   └── vite.config.js
+├── postman/                     # Postman 8-collection test suites
+├── TalentVerify_CRUD_API.postman_collection.json
+├── start_app.bat                # 1-click startup script
+├── stop_app.bat                 # 1-click shutdown script
+└── README.md
 ```
