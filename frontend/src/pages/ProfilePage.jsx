@@ -52,21 +52,23 @@ import { apiForm, apiRequest } from '../services/api';
  * @param {(profile: Object) => Promise<any>} props.onSave - Save callback to update user profile in parent state.
  */
 export default function ProfilePage({ user, token, onSave }) {
+  const safeUser = user || {};
+
   // --- Form Input States ---
   const [form, setForm] = useState({
-    name: user.name || '',
-    phone: user.phone || '',
-    location: user.location || '',
-    headline: user.headline || '',
-    company: user.company || '',
-    bio: user.bio || '',
-    technicalSkills: user.technicalSkills || '',
-    softSkills: user.softSkills || '',
-    skills: user.skills || '',
-    experience: user.experience || '',
-    linkedinUrl: user.linkedinUrl || '',
-    githubUrl: user.githubUrl || '',
-    portfolioUrl: user.portfolioUrl || '',
+    name: safeUser.name || '',
+    phone: safeUser.phone || '',
+    location: safeUser.location || '',
+    headline: safeUser.headline || '',
+    company: safeUser.company || '',
+    bio: safeUser.bio || '',
+    technicalSkills: safeUser.technicalSkills || '',
+    softSkills: safeUser.softSkills || '',
+    skills: safeUser.skills || '',
+    experience: safeUser.experience || '',
+    linkedinUrl: safeUser.linkedinUrl || '',
+    githubUrl: safeUser.githubUrl || '',
+    portfolioUrl: safeUser.portfolioUrl || '',
   });
 
   // --- Feedback & Notification States ---
@@ -88,7 +90,7 @@ export default function ProfilePage({ user, token, onSave }) {
   const [portfolioLoading, setPortfolioLoading] = useState(false);
   const [portfolioError, setPortfolioError] = useState('');
   const [portfolioEvidence, setPortfolioEvidence] = useState(null);
-  const [linkedinVerification, setLinkedinVerification] = useState(user.linkedinVerification || null);
+  const [linkedinVerification, setLinkedinVerification] = useState(safeUser.linkedinVerification || null);
   const [linkedinHistory, setLinkedinHistory] = useState([]);
   const [showLinkedinHistory, setShowLinkedinHistory] = useState(false);
   const [selectedSkillDrillDown, setSelectedSkillDrillDown] = useState(null);
@@ -102,11 +104,11 @@ export default function ProfilePage({ user, token, onSave }) {
   const [compareToId, setCompareToId] = useState('');
 
   // --- Profile Photo & Visibility Settings ---
-  const [profilePhotoUrl, setProfilePhotoUrl] = useState(user.profilePhotoUrl || '');
+  const [profilePhotoUrl, setProfilePhotoUrl] = useState(safeUser.profilePhotoUrl || '');
   const [photoUploading, setPhotoUploading] = useState(false);
   const [photoError, setPhotoError] = useState('');
   const [showPhotoSettings, setShowPhotoSettings] = useState(false);
-  const [photoVisibleToRecruiters, setPhotoVisibleToRecruiters] = useState(user.photoVisibleToRecruiters === true);
+  const [photoVisibleToRecruiters, setPhotoVisibleToRecruiters] = useState(safeUser.photoVisibleToRecruiters === true);
   const [showQualityExplanation, setShowQualityExplanation] = useState(false);
 
   // --- DOM References ---
@@ -140,33 +142,39 @@ export default function ProfilePage({ user, token, onSave }) {
    * Loads structured candidate records, skill matrix, and verification snapshots from the backend.
    */
   const loadData = () => {
-    if (user.role !== 'candidate') return;
+    if (safeUser.role !== 'candidate') return;
     apiRequest(`/api/candidates/me/structured?token=${encodeURIComponent(token)}`)
       .then((data) => {
-        setStructured(data);
-        if (data.github) {
+        if (!data || typeof data !== 'object') return;
+        setStructured({
+          languages: Array.isArray(data.languages) ? data.languages.filter(Boolean) : [],
+          projects: Array.isArray(data.projects) ? data.projects.filter(Boolean) : [],
+          education: Array.isArray(data.education) ? data.education.filter(Boolean) : [],
+          cv_analyses: Array.isArray(data.cv_analyses) ? data.cv_analyses.filter(Boolean) : [],
+          ...data,
+        });
+        if (data.github && typeof data.github === 'object') {
           setGithubEvidence(data.github);
           if (data.github.github_url) update('githubUrl', data.github.github_url);
         }
-        if (data.linkedin) setLinkedinVerification(data.linkedin);
-        setLinkedinHistory(data.linkedin_history || []);
-        if (data.portfolio) {
+        if (data.linkedin && typeof data.linkedin === 'object') setLinkedinVerification(data.linkedin);
+        setLinkedinHistory(Array.isArray(data.linkedin_history) ? data.linkedin_history.filter(Boolean) : []);
+        if (data.portfolio && typeof data.portfolio === 'object') {
           setPortfolioEvidence(data.portfolio);
-          update('portfolioUrl', data.portfolio.portfolio_url);
+          if (data.portfolio.portfolio_url) update('portfolioUrl', data.portfolio.portfolio_url);
         }
       })
       .catch(() => {});
 
     apiRequest(`/api/candidates/me/skills/matrix?token=${encodeURIComponent(token)}`)
-      .then((data) => setSkillMatrix(data || []))
-      .catch(() => {});
+      .then((data) => setSkillMatrix(Array.isArray(data) ? data.filter(Boolean) : []))
+      .catch(() => setSkillMatrix([]));
   };
 
   // Synchronize candidate data on mount or token change
   useEffect(() => {
-
     loadData();
-  }, [token, user.role]);
+  }, [token, safeUser.role]);
 
   /**
    * Triggers background GitHub repository analysis and commit activity verification.
@@ -294,17 +302,19 @@ export default function ProfilePage({ user, token, onSave }) {
     });
   };
   const savedTechnicalSkillKeys = new Set(
-    String(user.technicalSkills || '').split(',').map((skill) => skill.trim().toLowerCase()).filter(Boolean),
+    String(safeUser.technicalSkills || '').split(',').map((skill) => skill.trim().toLowerCase()).filter(Boolean),
   );
-  const profileSkillMatrix = skillMatrix.filter(
-    (item) => savedTechnicalSkillKeys.has(String(item.skill || '').trim().toLowerCase()),
+  const safeSkillMatrix = Array.isArray(skillMatrix) ? skillMatrix.filter(Boolean) : [];
+  const profileSkillMatrix = safeSkillMatrix.filter(
+    (item) => item && item.skill && savedTechnicalSkillKeys.has(String(item.skill).trim().toLowerCase()),
   );
   const displayedProfileSkillMatrix = showAllSkillMatrix ? profileSkillMatrix : profileSkillMatrix.slice(0, 32);
-  const profileQualityScore = githubEvidence?.analysis?.code_quality_score
-    ?? (githubEvidence?.repositories?.length
+  const rawRepos = Array.isArray(githubEvidence?.repositories) ? githubEvidence.repositories.filter(Boolean) : [];
+  const profileQualityScore = Number(githubEvidence?.analysis?.code_quality_score)
+    || (rawRepos.length
       ? Math.round(
-        githubEvidence.repositories.reduce((total, repo) => total + Number(repo.code_quality?.score || 0), 0)
-        / githubEvidence.repositories.length,
+        rawRepos.reduce((total, repo) => total + Number(repo?.code_quality?.score || 0), 0)
+        / rawRepos.length,
       )
       : 0);
 
@@ -764,7 +774,12 @@ export default function ProfilePage({ user, token, onSave }) {
                       <p>README documentation — 30 points</p><p>Automated tests — 25 points</p><p>License — 15 points</p><p>Repository description — 15 points</p><p>Docker or CI/CD workflow — 15 points</p>
                     </div>
                     <div className="mt-5 space-y-2 border-t pt-4">
-                      {(githubEvidence.analysis?.selected_repositories || githubEvidence.repositories || []).map((repo) => <div key={repo.repository_url || repo.name} className="flex justify-between rounded-lg bg-slate-50 p-3 text-sm"><span className="font-semibold text-slate-800">{repo.repository_name || repo.name}</span><span className="font-bold text-blue-700">{repo.code_quality?.score ?? 0}/100</span></div>)}
+                      {(Array.isArray(githubEvidence.analysis?.selected_repositories) ? githubEvidence.analysis.selected_repositories : rawRepos).map((repo, idx) => (
+                        <div key={repo.repository_url || repo.name || idx} className="flex justify-between rounded-lg bg-slate-50 p-3 text-sm">
+                          <span className="font-semibold text-slate-800">{repo.repository_name || repo.name || 'Repository'}</span>
+                          <span className="font-bold text-blue-700">{Number(repo?.code_quality?.score ?? 0)}/100</span>
+                        </div>
+                      ))}
                     </div>
                     <p className="mt-4 rounded-lg bg-blue-50 p-3 text-xs leading-5 text-blue-900">The final value is the arithmetic average of these repository scores. It measures public repository hygiene only and is not a hiring decision.</p>
                   </div>
@@ -777,7 +792,9 @@ export default function ProfilePage({ user, token, onSave }) {
                   Verified Technical Skills (Click for Evidence Drill-Down)
                 </p>
                 <div className="flex flex-wrap gap-2">
-                  {(githubEvidence.skill_evidence || []).filter((item) => isProfileTechnicalSkill(item.skill)).map((item, i) => (
+                  {(Array.isArray(githubEvidence.skill_evidence) ? githubEvidence.skill_evidence : [])
+                    .filter((item) => item && item.skill && isProfileTechnicalSkill(item.skill))
+                    .map((item, i) => (
                     <button
                       key={i}
                       type="button"
@@ -1395,22 +1412,26 @@ function StructuredSections({ data, token, onAdded }) {
           <div className="mt-3 space-y-2">
             {section.key === 'cv_analyses' && !expandedLists.cv_analyses ? (
               <p className="text-sm text-slate-400">CV analysis records are hidden. Click “View history” to inspect them.</p>
-            ) : (data?.[section.key] || []).length ? (
-              (section.key === 'projects' && !expandedLists.projects ? data[section.key].slice(0, 2) : data[section.key]).map((item, index) => (
-                <div key={item.id || index} className="flex flex-col rounded-lg bg-slate-50 p-3 text-sm text-slate-600 ring-1 ring-slate-100">
-                  {section.render(item)}
-                  <small className="mt-1 text-blue-600">
-                    {(item.sources || [item.source])
-                      .filter(Boolean)
-                      .map((source) => (source === 'cv_gemini' ? 'CV · Gemini' : source === 'candidate_manual' ? 'Manual' : source))
-                      .join(' + ')}
-                  </small>
-                </div>
-              ))
+            ) : Array.isArray(data?.[section.key]) && data[section.key].length > 0 ? (
+              (section.key === 'projects' && !expandedLists.projects ? data[section.key].slice(0, 2) : data[section.key])
+                .filter(Boolean)
+                .map((item, index) => {
+                  const rawSources = Array.isArray(item.sources) ? item.sources : item.source ? [item.source] : [];
+                  const sourcesText = rawSources
+                    .filter(Boolean)
+                    .map((source) => (source === 'cv_gemini' ? 'CV · Gemini' : source === 'candidate_manual' ? 'Manual' : String(source)))
+                    .join(' + ');
+                  return (
+                    <div key={item.id || index} className="flex flex-col rounded-lg bg-slate-50 p-3 text-sm text-slate-600 ring-1 ring-slate-100">
+                      {section.render ? section.render(item) : null}
+                      {sourcesText && <small className="mt-1 text-blue-600">{sourcesText}</small>}
+                    </div>
+                  );
+                })
             ) : (
               <p className="text-sm text-slate-400">{section.empty}</p>
             )}
-            {section.key === 'projects' && (data?.projects || []).length > 2 && (
+            {section.key === 'projects' && Array.isArray(data?.projects) && data.projects.length > 2 && (
               <button type="button" onClick={() => setExpandedLists((current) => ({ ...current, projects: !current.projects }))} className="w-full rounded-lg border border-blue-200 py-2 text-sm font-bold text-blue-700 hover:bg-blue-50">
                 {expandedLists.projects ? 'Show less' : `See more (${data.projects.length - 2})`}
               </button>
@@ -1426,13 +1447,14 @@ function StructuredSections({ data, token, onAdded }) {
  * Form allowing candidate to manually input structured credentials (languages, projects, education).
  */
 function ManualRecordForm({ section, value, setValue, onSave, error }) {
+  const safeVal = value || {};
   const LANGUAGE_OPTIONS = ['English', 'Sinhala', 'Tamil'];
   const PROFICIENCY_OPTIONS = ['Basic', 'Moderate', 'Fluent'];
   const field = (name, placeholder, type = 'text') => (
     <input
       type={type}
-      value={value[name] ?? ''}
-      onChange={(e) => setValue({ ...value, [name]: e.target.value })}
+      value={safeVal[name] ?? ''}
+      onChange={(e) => setValue({ ...safeVal, [name]: e.target.value })}
       placeholder={placeholder}
       className="rounded-lg border border-slate-300 bg-white p-2 text-sm"
     />
@@ -1442,8 +1464,8 @@ function ManualRecordForm({ section, value, setValue, onSave, error }) {
       {label}
       <select
         required
-        value={value[name] ?? ''}
-        onChange={(e) => setValue({ ...value, [name]: e.target.value })}
+        value={safeVal[name] ?? ''}
+        onChange={(e) => setValue({ ...safeVal, [name]: e.target.value })}
         className="mt-1 w-full rounded-lg border border-slate-300 bg-white p-2 text-sm text-slate-800"
       >
         <option value="" disabled>Select {label.toLowerCase()}</option>

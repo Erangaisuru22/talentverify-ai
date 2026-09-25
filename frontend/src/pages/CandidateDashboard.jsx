@@ -22,6 +22,8 @@ import { apiForm, apiRequest } from '../services/api';
  * @param {() => void} [props.onNavigateProfile] - Navigation helper to jump to Profile view.
  */
 export default function CandidateDashboard({ jobs = [], user, token, applications = [], onSaveProfile, onApply, onWithdraw, onNavigateProfile }) {
+  const safeUser = user || {};
+
   // --- DOM References ---
   const fileInputRef = useRef(null);
   const applicationsRef = useRef(null);
@@ -44,9 +46,9 @@ export default function CandidateDashboard({ jobs = [], user, token, application
   // Selected job object and skills requirements
   const selectedJob = jobs.find((job) => job.id === selectedJobId) || jobs[0];
   const hasProfileSkills = Boolean(
-    String(user?.technicalSkills || '').trim() ||
-    String(user?.softSkills || '').trim() ||
-    String(user?.skills || '').trim() ||
+    String(safeUser.technicalSkills || '').trim() ||
+    String(safeUser.softSkills || '').trim() ||
+    String(safeUser.skills || '').trim() ||
     Boolean(cvText)
   );
   const jobSkills = selectedJob?.skills || 'React, JavaScript, Tailwind, TypeScript, Next.js';
@@ -146,13 +148,13 @@ export default function CandidateDashboard({ jobs = [], user, token, application
 
   /** Candidate profile text compilation for reference */
   const profileText = [
-    `Candidate: ${user.name || ''}`,
-    `Professional headline: ${user.headline || ''}`,
-    `Technical Skills: ${user.technicalSkills || ''}`,
-    `Soft Skills: ${user.softSkills || ''}`,
-    `Experience: ${user.experience || 0} years`,
-    `About: ${user.bio || ''}`,
-    `Location: ${user.location || ''}`,
+    `Candidate: ${safeUser.name || ''}`,
+    `Professional headline: ${safeUser.headline || ''}`,
+    `Technical Skills: ${safeUser.technicalSkills || ''}`,
+    `Soft Skills: ${safeUser.softSkills || ''}`,
+    `Experience: ${safeUser.experience || 0} years`,
+    `About: ${safeUser.bio || ''}`,
+    `Location: ${safeUser.location || ''}`,
   ].join('\n');
 
   /**
@@ -207,11 +209,11 @@ export default function CandidateDashboard({ jobs = [], user, token, application
         jobId: selectedJob.id, jobTitle: selectedJob.title, company: selectedJob.company, location: selectedJob.location,
         score: result.score, matchedSkills: result.matched_skills || [],
         requiredSkills: jobSkills.split(',').map((skill) => skill.trim()).filter(Boolean),
-        requiredExperience: Number(selectedJob.experience || 0), candidateExperience: Number(user.experience || 0), analysis: result,
-        candidateSnapshot: { name: user.name || '', headline: user.headline || '', phone: user.phone || '', location: user.location || '',
-          skills: [user.technicalSkills, user.softSkills].filter(Boolean).join(', '), technicalSkills: user.technicalSkills || '',
-          softSkills: user.softSkills || '', experience: Number(user.experience || 0), cvFileName: fileName || user.cvFileName || '',
-          portfolioUrl: user.portfolioUrl || '' },
+        requiredExperience: Number(selectedJob.experience || 0), candidateExperience: Number(safeUser.experience || 0), analysis: result,
+        candidateSnapshot: { name: safeUser.name || '', headline: safeUser.headline || '', phone: safeUser.phone || '', location: safeUser.location || '',
+          skills: [safeUser.technicalSkills, safeUser.softSkills].filter(Boolean).join(', '), technicalSkills: safeUser.technicalSkills || '',
+          softSkills: safeUser.softSkills || '', experience: Number(safeUser.experience || 0), cvFileName: fileName || safeUser.cvFileName || '',
+          portfolioUrl: safeUser.portfolioUrl || '' },
       });
       setApplied(true);
       setTimeout(() => applicationsRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' }), 100);
@@ -227,12 +229,12 @@ export default function CandidateDashboard({ jobs = [], user, token, application
    * @param {string} skillToRemove - Name of the skill to delete.
    */
   const removeProfileSkill = async (key, skillToRemove) => {
-    const existing = user[key] || '';
+    const existing = safeUser[key] || '';
     const updatedList = existing.split(',').map((s) => s.trim()).filter((s) => s && s.toLowerCase() !== skillToRemove.toLowerCase());
     const updatedStr = updatedList.join(', ');
 
-    const tech = key === 'technicalSkills' ? updatedStr : (user.technicalSkills || '');
-    const soft = key === 'softSkills' ? updatedStr : (user.softSkills || '');
+    const tech = key === 'technicalSkills' ? updatedStr : (safeUser.technicalSkills || '');
+    const soft = key === 'softSkills' ? updatedStr : (safeUser.softSkills || '');
     const combined = Array.from(new Set([...tech.split(','), ...soft.split(',')])).map((s) => s.trim()).filter(Boolean).join(', ');
 
     const kind = key === 'technicalSkills' ? 'technical' : 'soft';
