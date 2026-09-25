@@ -1,39 +1,87 @@
 /**
+ * ============================================================================
  * @file main.jsx
- * @description Application entry point for TalentVerifyAI frontend.
- * Sets up global CSS, catches critical boot errors using an ErrorBoundary,
- * and mounts the root React component tree into the DOM.
+ * @description Application bootstrap entry point for TalentVerifyAI.
+ * 
+ * CORE RESPONSIBILITIES:
+ * 1. Imports React 18 DOM root rendering engine and global CSS tokens.
+ * 2. Implements top-level React ErrorBoundary class to trap uncaught render exceptions.
+ * 3. Mounts the root `<App />` component tree into HTML `<div id="root"></div>`.
+ * ============================================================================
  */
 
+// ----------------------------------------------------------------------------
+// JavaScript Keyword: `import`
+// Purpose: Pulls in dependencies from the React library and local project files.
+// ----------------------------------------------------------------------------
 import React from 'react'
 import ReactDOM from 'react-dom/client'
 import App from './App.jsx'
 import './index.css'
 
 /**
- * Top-level React Error Boundary to capture unhandled rendering crashes
- * and present a recovery UI instead of a blank screen.
+ * ----------------------------------------------------------------------------
+ * JavaScript Keywords: `class` and `extends`
+ * - `class`: Declares an Object-Oriented class template in JavaScript.
+ * - `extends`: Creates inheritance, making ErrorBoundary inherit from `React.Component`.
+ * ----------------------------------------------------------------------------
+ * Top-level React Error Boundary Component.
+ * Catches errors anywhere in the child component tree, logs them, and renders
+ * a user-friendly recovery interface instead of a blank white screen.
  */
 class ErrorBoundary extends React.Component {
+  /**
+   * JavaScript Keyword: `constructor`
+   * Method that is automatically executed when a new instance of this class is created.
+   * 
+   * @param {Object} props - Properties passed to the component.
+   */
   constructor(props) {
+    // JavaScript Keyword: `super`
+    // Calls the constructor of the parent class (`React.Component`) with `props`.
     super(props)
+
+    // JavaScript Keyword: `this`
+    // Points to the current instance of ErrorBoundary.
     this.state = { error: null }
   }
 
-  // Update state so the next render will show the fallback UI
+  /**
+   * JavaScript Keyword: `static`
+   * Defines a class-level method that belongs to the class itself, not its instances.
+   * React calls this lifecycle method when a descendant component throws an error.
+   * 
+   * @param {Error} error - The uncaught runtime exception.
+   * @returns {Object} Updated state object triggering a fallback render.
+   */
   static getDerivedStateFromError(error) {
     return { error }
   }
 
+  /**
+   * Component Lifecycle Method: `componentDidCatch`
+   * Invoked after an error has been thrown by a descendant component.
+   * 
+   * @param {Error} error - The error that was thrown.
+   * @param {React.ErrorInfo} errorInfo - Component stack trace information.
+   */
   componentDidCatch(error, errorInfo) {
     console.error('Captured ErrorBoundary failure:', error, errorInfo);
   }
 
+  /**
+   * JavaScript Class Method: `render`
+   * Mandatory method for React class components that returns JSX markup to the DOM.
+   * 
+   * @returns {React.ReactNode} Children components or fallback error recovery UI.
+   */
   render() {
-    // If no error occurred, render children normally
+    // JavaScript Keyword: `if`
+    // If no error occurred during rendering, display child components normally.
     if (!this.state.error) return this.props.children
 
-    // Fallback error UI shown upon runtime failure
+    // JavaScript Keyword: `return`
+    // Returns fallback error UI with reload, session reset, and technical stack details.
     return (
       <main className="flex min-h-screen items-center justify-center bg-slate-950 p-6">
         <section className="w-full max-w-lg rounded-2xl bg-white p-8 text-center shadow-2xl">
@@ -77,8 +125,14 @@ class ErrorBoundary extends React.Component {
   }
 }
 
-// Locate root DOM element container
+// ----------------------------------------------------------------------------
+// APPLICATION MOUNTING LOGIC
+// ----------------------------------------------------------------------------
+// Locate the single root DOM container in index.html: <div id="root"></div>
 const root = document.getElementById('root')
+
+// JavaScript Keywords: `if`, `throw new Error`
+// Enforces that the root DOM node must exist, otherwise halts execution immediately.
 if (!root) throw new Error('The application root element is missing.')
 
 // Mount React application inside StrictMode and ErrorBoundary
@@ -87,4 +141,3 @@ ReactDOM.createRoot(root).render(
     <ErrorBoundary><App /></ErrorBoundary>
   </React.StrictMode>,
 )
-
