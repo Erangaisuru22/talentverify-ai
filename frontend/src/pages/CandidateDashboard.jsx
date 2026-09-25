@@ -1,50 +1,84 @@
 /**
+ * ============================================================================
  * @file CandidateDashboard.jsx
  * @description Candidate dashboard view facilitating job discovery, AI CV parsing (Gemini),
  * real-time role compatibility analysis, profile skill management, and application lifecycle tracking.
+ * 
+ * CORE RESPONSIBILITIES:
+ * 1. Interactive Job Search & Role Selection.
+ * 2. CV Document Upload & Gemini AI Skill Extraction.
+ * 3. Real-Time Job Requirements Match & Evidence Gap Evaluation.
+ * 4. Application Lifecycle Tracking (Submit, Review, Withdraw).
+ * ============================================================================
  */
 
+// ----------------------------------------------------------------------------
+// JavaScript Keyword: `import`
+// Pulls in React core, standard React Hooks, Lucide UI icons, and API client.
+// - `useRef`: React Hook that returns a mutable ref object whose .current property 
+//   persists across renders without triggering a re-render.
+// - `useState`: React Hook for managing reactive local component state.
+// - `useEffect`: React Hook for managing side-effects and lifecycle triggers.
+// ----------------------------------------------------------------------------
 import React, { useEffect, useRef, useState } from 'react';
 import { AlertCircle, Briefcase, CheckCircle, Clock3, FileText, Loader2, MapPin, Search, Target, Upload, X } from 'lucide-react';
 import { apiForm, apiRequest } from '../services/api';
 
 /**
+ * ----------------------------------------------------------------------------
+ * JavaScript Keywords: `export default function`
+ * - `export default`: Designates CandidateDashboard as the default export of this file.
+ * - `function`: Functional component receiving destructured props.
+ * ----------------------------------------------------------------------------
  * Main dashboard component for candidates.
  *
- * @param {Object} props
- * @param {Array} [props.jobs=[]] - Available job postings.
- * @param {Object} props.user - Current candidate user profile.
+ * @param {Object} props - Destructured component properties.
+ * @param {Array} [props.jobs=[]] - Available job postings from database.
+ * @param {Object} props.user - Active candidate user profile object.
  * @param {string} props.token - Active authentication session token.
  * @param {Array} [props.applications=[]] - Candidate's submitted applications.
  * @param {(profile: Object) => Promise<any>} props.onSaveProfile - Callback to persist candidate profile changes.
  * @param {(app: Object) => Promise<any>} props.onApply - Callback to submit a job application.
  * @param {(appId: string|number) => Promise<any>} props.onWithdraw - Callback to withdraw an application.
  * @param {() => void} [props.onNavigateProfile] - Navigation helper to jump to Profile view.
+ * @returns {React.ReactElement}
  */
 export default function CandidateDashboard({ jobs = [], user, token, applications = [], onSaveProfile, onApply, onWithdraw, onNavigateProfile }) {
+  // JavaScript Keyword: `const`
+  // Creates a null-safe fallback object so property accesses never throw TypeError if user is undefined.
   const safeUser = user || {};
 
-  // --- DOM References ---
-  const fileInputRef = useRef(null);
-  const applicationsRef = useRef(null);
+  // --------------------------------------------------------------------------
+  // REACT DOM REFERENCES (`useRef`)
+  // Holds direct references to DOM nodes for programmatic clicks and scrolling.
+  // --------------------------------------------------------------------------
+  const fileInputRef = useRef(null);         // Hidden <input type="file" /> DOM element
+  const applicationsRef = useRef(null);      // 'My Applications' list DOM container for smooth scroll
 
-  // --- Component States ---
-  const [selectedJobId, setSelectedJobId] = useState(jobs[0]?.id || null);
+  // --------------------------------------------------------------------------
+  // REACT STATE HOOKS (`useState`)
+  // Declares reactive local state variables and their updater functions.
+  // --------------------------------------------------------------------------
+  const [selectedJobId, setSelectedJobId] = useState(jobs[0]?.id || null); // Currently highlighted job
   const [cvText, setCvText] = useState('');                 // Extracted raw text from uploaded CV
   const [fileName, setFileName] = useState('');             // Name of uploaded CV file
-  const [importing, setImporting] = useState(false);         // CV uploading & parsing loading state
+  const [importing, setImporting] = useState(false);         // CV uploading & parsing loading indicator
   const [loading, setLoading] = useState(false);             // Compatibility analysis in-progress flag
-  const [message, setMessage] = useState('');               // Success notice message
-  const [error, setError] = useState('');                   // Error notice message
+  const [message, setMessage] = useState('');               // Success notice message banner
+  const [error, setError] = useState('');                   // Error notice message banner
   const [result, setResult] = useState(null);               // Gemini AI compatibility analysis result
-  const [searchDraft, setSearchDraft] = useState('');       // Search input buffer
+  const [searchDraft, setSearchDraft] = useState('');       // Search input buffer string
   const [searchQuery, setSearchQuery] = useState('');       // Submitted job search query
   const [applied, setApplied] = useState(false);             // Immediate application submission flag
   const [alreadyAppliedModal, setAlreadyAppliedModal] = useState(false); // Modal trigger for duplicate applications
   const [noSkillsModal, setNoSkillsModal] = useState(false); // Modal trigger when candidate has no profile skills
 
-  // Selected job object and skills requirements
+  // Selected job object found from jobs array (or default to first available job)
+  // Array Method: `.find()` returns the first element satisfying the predicate
   const selectedJob = jobs.find((job) => job.id === selectedJobId) || jobs[0];
+
+  // JavaScript Keyword: `Boolean(...)`
+  // Casts truthy/falsy value to a strict boolean indicating if candidate has skills recorded
   const hasProfileSkills = Boolean(
     String(safeUser.technicalSkills || '').trim() ||
     String(safeUser.softSkills || '').trim() ||
@@ -54,6 +88,8 @@ export default function CandidateDashboard({ jobs = [], user, token, application
   const jobSkills = selectedJob?.skills || 'React, JavaScript, Tailwind, TypeScript, Next.js';
 
   // Filtered job list based on candidate search query
+  // Array Method: `.filter()` returns a new array matching the search term
+  // Array Method: `.some()` returns true if at least one field contains the query
   const filteredJobs = jobs.filter((job) => {
     const query = searchQuery.trim().toLowerCase();
     return !query || [job.title, job.company, job.location, job.type, job.skills].some((value) => String(value || '').toLowerCase().includes(query));
@@ -63,87 +99,132 @@ export default function CandidateDashboard({ jobs = [], user, token, application
   const existingApplication = applications.find((item) => item.jobId === selectedJob?.id && !['Withdrawn', 'Application Withdrawn'].includes(item.status));
 
   // Reset applied state when active job selection changes or has no application
+  // React Hook `useEffect`: synchronizes UI state whenever `existingApplication` changes
   useEffect(() => {
+    // JavaScript Keyword: `if`
     if (!existingApplication) setApplied(false);
   }, [existingApplication]);
 
   /**
-   * Helper to merge existing skill strings with newly extracted skill arrays without duplicates.
+   * Helper function to merge existing skill strings with newly extracted skill arrays without duplicates.
+   * 
    * @param {string} existing - Comma-separated existing skills.
    * @param {Array<string>} extracted - Array of newly discovered skill names.
    * @returns {string} Merged comma-separated skill list.
    */
   const mergeSkills = (existing, extracted) => {
     const merged = [];
+    // JavaScript Keyword: `new Set()`
+    // Set object stores unique values of any type, eliminating duplicate entries.
     const seen = new Set();
     [...String(existing || '').split(','), ...extracted].forEach((skill) => {
       const clean = String(skill).trim();
       const key = clean.toLowerCase();
       if (clean && !seen.has(key)) { seen.add(key); merged.push(clean); }
     });
+    // Array Method: `.join(', ')` concatenates array elements into a comma-delimited string
     return merged.join(', ');
   };
 
   /**
+   * --------------------------------------------------------------------------
+   * JavaScript Keywords: `async` and `await`
+   * Purpose: Performs non-blocking asynchronous CV document upload and AI parsing.
+   * --------------------------------------------------------------------------
    * Uploads and parses candidate CV document (PDF/DOCX/TXT).
    * Automatically invokes Gemini AI to extract technical and soft skills,
    * experience, and updates the candidate's profile in real time.
+   * 
    * @param {File} file - User selected CV file.
    */
   const handleImport = async (file) => {
+    // JavaScript Keyword: `if`
+    // Guard clause: Exit immediately if no file was selected
     if (!file) return;
+
+    // String manipulation: extracts file extension in lowercase
     const extension = file.name.split('.').pop()?.toLowerCase();
-    if (!['pdf', 'docx', 'txt'].includes(extension)) { setError('Please choose a PDF, DOCX, or TXT file.'); return; }
-    if (file.size > 10 * 1024 * 1024) { setError('CV file must be 10 MB or smaller.'); return; }
-    setImporting(true); setError(''); setMessage(''); setResult(null);
+    if (!['pdf', 'docx', 'txt'].includes(extension)) {
+      setError('Please choose a PDF, DOCX, or TXT file.');
+      return;
+    }
+
+    // File size validation (10 MB = 10 * 1024 * 1024 bytes)
+    if (file.size > 10 * 1024 * 1024) {
+      setError('CV file must be 10 MB or smaller.');
+      return;
+    }
+
+    // Set loading indicator and clear prior messages
+    setImporting(true);
+    setError('');
+    setMessage('');
+    setResult(null);
+
+    // JavaScript Keywords: `try...catch...finally`
+    // Ensures clean execution and guarantees resetting `importing` state even upon failure.
     try {
-      // Step 1: Upload and extract text content from CV file
-      const uploadData = new FormData(); uploadData.append('file', file);
+      // Step 1: Instantiate browser `FormData` object to transfer multipart/form-data binary file
+      const uploadData = new FormData();
+      uploadData.append('file', file);
+      // Asynchronously post CV file to backend extraction endpoint
       const imported = await apiForm(`/api/import-cv?token=${encodeURIComponent(token)}`, uploadData);
 
-      // Step 2: Send extracted text to AI for skill and experience extraction
+      // Step 2: Send extracted text to Gemini AI for skill and experience extraction
       const analysisData = new FormData();
       analysisData.append('job_title', selectedJob?.title || 'General Candidate Profile');
       analysisData.append('job_skills', jobSkills);
       analysisData.append('cv_text', imported.text);
-      analysisData.append('candidate_experience', Number(user.experience || 0));
+      analysisData.append('candidate_experience', Number(safeUser.experience || 0));
       analysisData.append('required_experience', Number(selectedJob?.experience || 0));
       const analysis = await apiForm('/api/analyze-cv', analysisData);
 
+      // Extract parsed profile attributes from AI result
       const details = analysis.profile_details || {};
       const extractedTech = details.technical_skills || [];
       const extractedSoft = details.soft_skills || [];
       const extractedSkills = analysis.extracted_skills || [...extractedTech, ...extractedSoft];
 
-      // Merge newly extracted skills with candidate's existing profile skills
-      const newTechSkills = mergeSkills(user.technicalSkills || '', extractedTech);
-      const newSoftSkills = mergeSkills(user.softSkills || '', extractedSoft);
-      const combinedSkills = mergeSkills(user.skills, [...extractedSkills, ...extractedTech, ...extractedSoft]);
+      // Merge newly extracted skills with candidate's existing profile skills without duplicates
+      const newTechSkills = mergeSkills(safeUser.technicalSkills || '', extractedTech);
+      const newSoftSkills = mergeSkills(safeUser.softSkills || '', extractedSoft);
+      const combinedSkills = mergeSkills(safeUser.skills, [...extractedSkills, ...extractedTech, ...extractedSoft]);
 
+      // Construct consolidated profile update payload
       const profileUpdate = {
         technicalSkills: newTechSkills,
         softSkills: newSoftSkills,
         skills: combinedSkills,
-        headline: details.headline || user.headline || '',
-        phone: details.phone || user.phone || '',
-        location: details.location || user.location || '',
-        bio: details.bio || user.bio || '',
-        experience: Math.max(Number(details.experience || 0), Number(user.experience || 0)),
+        headline: details.headline || safeUser.headline || '',
+        phone: details.phone || safeUser.phone || '',
+        location: details.location || safeUser.location || '',
+        bio: details.bio || safeUser.bio || '',
+        // JavaScript Method: `Math.max()` ensures we keep the higher recorded experience
+        experience: Math.max(Number(details.experience || 0), Number(safeUser.experience || 0)),
         cvFileName: imported.filename || file.name,
+        // JavaScript Keyword: `new Date().toISOString()` records UTC timestamp
         cvImportedAt: new Date().toISOString(),
       };
 
-      // Persist merged profile details to backend
+      // Persist merged profile details to backend MongoDB database
       await onSaveProfile(profileUpdate);
-      setCvText(imported.text); setFileName(imported.filename || file.name);
+      setCvText(imported.text);
+      setFileName(imported.filename || file.name);
       setResult(analysis);
       
       const techCount = extractedTech.length;
       const softCount = extractedSoft.length;
       const totalCount = extractedSkills.length;
       setMessage(`CV analyzed with Gemini: ${techCount > 0 ? `${techCount} Technical & ${softCount} Soft skills` : `${totalCount} skills`} saved to profile.`);
-    } catch (err) { setError(err.message || 'CV processing failed. Please check the backend.'); }
-    finally { setImporting(false); if (fileInputRef.current) fileInputRef.current.value = ''; }
+    } catch (err) {
+      // Catch block captures network or parsing failure and presents readable feedback
+      setError(err.message || 'CV processing failed. Please check the backend.');
+    } finally {
+      // JavaScript Keyword: `finally`
+      // Always runs: turns off loader and clears file input reference
+      setImporting(false);
+      if (fileInputRef.current) fileInputRef.current.value = '';
+    }
   };
 
   /** Candidate profile text compilation for reference */
@@ -158,7 +239,10 @@ export default function CandidateDashboard({ jobs = [], user, token, application
   ].join('\n');
 
   /**
-   * Requests backend candidate evaluation for the selected job.
+   * --------------------------------------------------------------------------
+   * JavaScript Keywords: `async` and `await`
+   * Purpose: Requests backend candidate evaluation for the selected job.
+   * --------------------------------------------------------------------------
    * Compares candidate profile and evidence against role requirements.
    */
   const analyze = async () => {
@@ -169,9 +253,9 @@ export default function CandidateDashboard({ jobs = [], user, token, application
       return;
     }
     const hasSkills = Boolean(
-      String(user?.technicalSkills || '').trim() ||
-      String(user?.softSkills || '').trim() ||
-      String(user?.skills || '').trim() ||
+      String(safeUser.technicalSkills || '').trim() ||
+      String(safeUser.softSkills || '').trim() ||
+      String(safeUser.skills || '').trim() ||
       Boolean(cvText)
     );
     if (!hasSkills) {
@@ -180,7 +264,8 @@ export default function CandidateDashboard({ jobs = [], user, token, application
       setError('Please add and save skills in your profile before running analysis.');
       return;
     }
-    setLoading(true); setError('');
+    setLoading(true);
+    setError('');
     try {
       const analysis = await apiRequest(`/api/jobs/${selectedJob.id}/candidate-evaluation?token=${encodeURIComponent(token)}`, { method: 'POST' });
       setResult(analysis);
