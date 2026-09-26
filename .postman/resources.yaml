@@ -6,11 +6,10 @@ workspace:
 
 cloudResources:
   collections:
-    ../postman/collections/TalentVerify AI - Full CRUD API: 7f8e9d0a-talentverify-crud-v2
     ../postman/collections/TalentVerify AI - 8 Collections CRUD API: talentverify-8-collections-crud-v3
 
 localResources:
   collections:
-    - ../TalentVerify_CRUD_API.postman_collection.json
+    - ../postman/collections/TalentVerify AI - 8 Collections CRUD API
   environments:
-    - ../TalentVerify_Local.postman_environment.json
+    - ../postman/environments/TalentVerify Local Environment.environment.yaml

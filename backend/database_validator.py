@@ -2,6 +2,9 @@
 TalentVerify AI - Database Schema & Foreign Key Validator Module
 Enforces Foreign Key (FK) referential integrity and schema rules across all 8 collections.
 
+Lead Developers: Hiruni Range Bandara & Pujani Bandara (pms11bandara)
+Branches: Hiruni | Pujani
+
 Since MongoDB does not natively enforce Foreign Key constraints, this backend
 validator guarantees data integrity before inserts and updates.
 """
